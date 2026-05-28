@@ -558,3 +558,49 @@ export const PROCESS_TREND = [
   { week: "W5", cqi: null as number | null, forecast: 88.0 },
   { week: "W6", cqi: null, forecast: 88.7 },
 ];
+
+// ============================================================
+// Roster — 20 agents for the searchable Agent table.
+// keyId links to the rich AGENTS data (feedback + training).
+// ============================================================
+export type TrainingStatus = "None" | "Active" | "Completed" | "Assessment Due" | "Escalated";
+export type CapStatus = "None" | "CAP-1" | "CAP-2";
+
+export interface RosterAgent {
+  rank: number;
+  name: string;
+  empId: string;
+  tl: string;
+  cqi: number;
+  cat: Category;
+  spd: number;
+  quality: number;
+  complaints: number;
+  training: TrainingStatus;
+  trainingNote?: string;
+  cap: CapStatus;
+  keyId?: string; // links to AGENTS[].id
+}
+
+export const AGENT_ROSTER: RosterAgent[] = [
+  { rank: 1,  name: "Kavita Reddy",     empId: "SIL-2011", tl: "Pooja S.",  cqi: 95.2, cat: "A", spd: 1.9, quality: 93, complaints: 0, training: "None",            cap: "None" },
+  { rank: 2,  name: "Arjun Nair",       empId: "SIL-2018", tl: "Neha A.",   cqi: 94.6, cat: "A", spd: 1.8, quality: 92, complaints: 0, training: "None",            cap: "None" },
+  { rank: 3,  name: "Anita Sharma",     empId: "SIL-2003", tl: "Pooja S.",  cqi: 94.0, cat: "A", spd: 1.8, quality: 92, complaints: 0, training: "None",            cap: "None", keyId: "anita" },
+  { rank: 4,  name: "Rohit Bansal",     empId: "SIL-2024", tl: "Kavita M.", cqi: 93.4, cat: "A", spd: 1.7, quality: 90, complaints: 0, training: "Completed",       trainingNote: "Rebuttal mastery", cap: "None" },
+  { rank: 5,  name: "Meera Iyer",       empId: "SIL-2029", tl: "Neha A.",   cqi: 92.8, cat: "A", spd: 1.7, quality: 89, complaints: 0, training: "None",            cap: "None" },
+  { rank: 6,  name: "Sanjay Pillai",    empId: "SIL-2034", tl: "Pooja S.",  cqi: 92.1, cat: "A", spd: 1.6, quality: 88, complaints: 0, training: "Completed",       trainingNote: "Step-Up rider", cap: "None" },
+  { rank: 7,  name: "Divya Kapoor",     empId: "SIL-2038", tl: "Kavita M.", cqi: 91.9, cat: "A", spd: 1.6, quality: 86, complaints: 0, training: "None",            cap: "None" },
+  { rank: 8,  name: "Priya Menon",      empId: "SIL-2041", tl: "Pooja S.",  cqi: 91.6, cat: "A", spd: 1.5, quality: 84, complaints: 0, training: "Active",          trainingNote: "Competition module", cap: "None", keyId: "priya" },
+  { rank: 9,  name: "Faisal Khan",      empId: "SIL-2046", tl: "Ramesh K.", cqi: 90.7, cat: "A", spd: 1.5, quality: 83, complaints: 0, training: "Completed",       trainingNote: "T&C timing", cap: "None" },
+  { rank: 10, name: "Nikhil Joshi",     empId: "SIL-2051", tl: "Vikram J.", cqi: 88.4, cat: "B", spd: 1.4, quality: 82, complaints: 1, training: "Active",          trainingNote: "Charges clarity", cap: "None" },
+  { rank: 11, name: "Aarti Deshmukh",   empId: "SIL-2060", tl: "Neha A.",   cqi: 86.9, cat: "B", spd: 1.3, quality: 80, complaints: 0, training: "Assessment Due",  cap: "None" },
+  { rank: 12, name: "Rahul Sharma",     empId: "SIL-2078", tl: "Ramesh K.", cqi: 85.5, cat: "B", spd: 1.2, quality: 78, complaints: 1, training: "Assessment Due",  trainingNote: "T&C timing — Day 5", cap: "None", keyId: "rahul" },
+  { rank: 13, name: "Pooja Bhatt",      empId: "SIL-2083", tl: "Kavita M.", cqi: 84.7, cat: "B", spd: 1.2, quality: 77, complaints: 1, training: "Completed",       trainingNote: "Closing technique", cap: "None" },
+  { rank: 14, name: "Vivek Choudhary",  empId: "SIL-2086", tl: "Vikram J.", cqi: 82.8, cat: "B", spd: 1.1, quality: 76, complaints: 0, training: "Active",          trainingNote: "Objection handling", cap: "None" },
+  { rank: 15, name: "Sneha Joshi",      empId: "SIL-2089", tl: "Neha A.",   cqi: 81.9, cat: "B", spd: 1.1, quality: 75, complaints: 0, training: "Completed",       trainingNote: "Closing — 3-S", cap: "None", keyId: "sneha" },
+  { rank: 16, name: "Tarun Mehta",      empId: "SIL-2094", tl: "Vikram J.", cqi: 78.6, cat: "C", spd: 1.0, quality: 70, complaints: 1, training: "Active",          trainingNote: "Product knowledge", cap: "None" },
+  { rank: 17, name: "Geeta Singh",      empId: "SIL-2102", tl: "Suresh B.", cqi: 74.2, cat: "C", spd: 0.9, quality: 66, complaints: 2, training: "Assessment Due",  cap: "None" },
+  { rank: 18, name: "Manish Verma",     empId: "SIL-2055", tl: "Vikram J.", cqi: 69.9, cat: "C", spd: 0.8, quality: 62, complaints: 2, training: "Escalated",       trainingNote: "Product bootcamp", cap: "CAP-1", keyId: "manish" },
+  { rank: 19, name: "Imran Sheikh",     empId: "SIL-2108", tl: "Suresh B.", cqi: 66.4, cat: "C", spd: 0.7, quality: 57, complaints: 2, training: "Escalated",       trainingNote: "Active listening", cap: "CAP-1" },
+  { rank: 20, name: "Deepak Tiwari",    empId: "SIL-2117", tl: "Suresh B.", cqi: 62.7, cat: "C", spd: 0.6, quality: 52, complaints: 3, training: "Active",          trainingNote: "Compliance refresher", cap: "CAP-2", keyId: "deepak" },
+];
