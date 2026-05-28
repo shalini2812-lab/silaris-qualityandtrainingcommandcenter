@@ -4,6 +4,7 @@ import { LayoutDashboard, BarChart3, Mic2 } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { Header, Footer } from "./Header";
 import { Copilot, type CopilotProps } from "./Copilot";
+import { ExecutionPanelProvider } from "./ExecutionPanel";
 import { ProcessOverviewView } from "./views/ProcessOverviewView";
 import { CallAnalyticsView } from "./views/CallAnalyticsView";
 import { VocView } from "./views/VocView";
