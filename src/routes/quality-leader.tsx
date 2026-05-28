@@ -134,7 +134,7 @@ function QLView() {
             QA scoring aligned within ±2 pts on 12 audited calls — strong consistency on opening, T&C, and closing parameters.
           </NoteCard>
           <NoteCard tone="amber" title="Variance (2 calls)">
-            Variance >5 pts on objection-handling subjective scoring between QA-A and QA-C. Re-calibration scheduled.
+            Variance &gt;5 pts on objection-handling subjective scoring between QA-A and QA-C. Re-calibration scheduled.
           </NoteCard>
           <NoteCard tone="blue" title="Action items">
             Update objection-handling rubric · publish revised mock-calls · re-test all 6 QAs by 02 May.
