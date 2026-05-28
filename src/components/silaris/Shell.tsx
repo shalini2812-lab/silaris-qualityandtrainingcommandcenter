@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { LayoutDashboard, BarChart3, Mic2 } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { Header, Footer } from "./Header";
@@ -23,8 +23,8 @@ function useCurrentTab(): TabKey {
 }
 
 function TopTabs() {
-  const path = useRouterState({ select: (r) => r.location.pathname });
   const active = useCurrentTab();
+  const navigate = useNavigate();
   return (
     <div className="border-b border-border bg-surface-2/40 px-5">
       <nav className="flex items-end gap-1 -mb-px">
@@ -32,12 +32,18 @@ function TopTabs() {
           const isActive = active === t.key;
           const Icon = t.icon;
           return (
-            <Link
+            <button
               key={t.key}
-              to={path}
-              search={t.key === "overview" ? {} : { tab: t.key }}
+              type="button"
+              onClick={() =>
+                navigate({
+                  to: ".",
+                  search: t.key === "overview" ? {} : ({ tab: t.key } as any),
+                  replace: false,
+                })
+              }
               className={[
-                "flex items-center gap-2 px-4 py-2.5 text-[13.5px] font-medium border-b-2 transition-colors",
+                "flex items-center gap-2 px-4 py-2.5 text-[13.5px] font-medium border-b-2 transition-colors cursor-pointer",
                 isActive
                   ? "border-acc-green text-acc-green"
                   : "border-transparent text-text-secondary hover:text-foreground hover:border-border",
@@ -45,7 +51,7 @@ function TopTabs() {
             >
               <Icon className="size-4" />
               {t.label}
-            </Link>
+            </button>
           );
         })}
       </nav>
