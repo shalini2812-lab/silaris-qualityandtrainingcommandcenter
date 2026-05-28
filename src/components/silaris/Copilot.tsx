@@ -47,10 +47,16 @@ export function Copilot({ working, attention, suggestions, summary }: CopilotPro
                 <div className="text-[13px] font-medium">{s.title}</div>
                 <div className="text-[12px] text-text-secondary mt-1 leading-snug">{s.detail}</div>
                 <div className="mt-2 flex gap-2">
-                  <button className="text-[11px] px-2.5 py-1 rounded bg-acc-green/15 text-acc-green border border-acc-green/30 hover:bg-acc-green/25">
+                  <button
+                    onClick={() => openFromSuggestion(s.title, s.detail, "Approve")}
+                    className="text-[11px] px-2.5 py-1 rounded bg-acc-green/15 text-acc-green border border-acc-green/30 hover:bg-acc-green/25"
+                  >
                     Approve
                   </button>
-                  <button className="text-[11px] px-2.5 py-1 rounded bg-secondary text-foreground/85 border border-border hover:border-acc-blue/40">
+                  <button
+                    onClick={() => openFromSuggestion(s.title, s.detail, "Review")}
+                    className="text-[11px] px-2.5 py-1 rounded bg-secondary text-foreground/85 border border-border hover:border-acc-blue/40"
+                  >
                     Review
                   </button>
                 </div>
