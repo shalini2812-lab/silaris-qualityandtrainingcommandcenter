@@ -1,18 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid,
 } from "recharts";
 import { Quote } from "lucide-react";
-import { Shell, Card, SectionTitle, Badge } from "@/components/silaris/Shell";
+import { Card, SectionTitle, Badge } from "@/components/silaris/Shell";
 import { VOC_PAIN, VOC_SCENARIOS, NI_ATTRIBUTION } from "@/lib/silaris-data";
 
-export const Route = createFileRoute("/voc")({
-  head: () => ({ meta: [{ title: "Voice of Customer · Silaris" }] }),
-  component: VoC,
-});
-
-function VoC() {
+export function VocView({ kicker = "Analytics" }: { kicker?: string }) {
   let cum = 0;
   const total = VOC_PAIN.reduce((s, d) => s + d.pct, 0);
   const pareto = VOC_PAIN.map((d) => {
@@ -21,18 +15,8 @@ function VoC() {
   });
 
   return (
-    <Shell
-      copilot={{
-        summary: "45% of pain points are product-related (expectation vs offering), not agent-related. Recommend updating marketing collateral on charges.",
-        working: ["Top 2 themes cover 66% of pain", "Agent-skill share only 11%", "STT capturing native-language verbatim"],
-        attention: ["Charge structure misunderstood in 24% of NI calls", "HDFC pricing mentioned in 24% of NI"],
-        suggestions: [
-          { title: "Brief AMLI marketing", detail: "Update charges explainer + comparison microsite" },
-          { title: "Add pre-call SMS", detail: "Set expectation on charges + free-look" },
-        ],
-      }}
-    >
-      <SectionTitle kicker="Analytics">Voice of Customer</SectionTitle>
+    <>
+      <SectionTitle kicker={kicker}>Voice of Customer</SectionTitle>
 
       <Card title="Customer Pain Points — Pareto" className="mb-5">
         <div className="h-[300px]">
@@ -101,7 +85,7 @@ function VoC() {
           </Rec>
         </div>
       </Card>
-    </Shell>
+    </>
   );
 }
 

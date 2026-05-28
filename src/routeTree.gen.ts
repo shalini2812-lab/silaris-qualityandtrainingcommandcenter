@@ -9,25 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as VocRouteImport } from './routes/voc'
 import { Route as TrainingManagerRouteImport } from './routes/training-manager'
 import { Route as TrainingLeadRouteImport } from './routes/training-lead'
 import { Route as TeamLeaderRouteImport } from './routes/team-leader'
-import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as QualityLeaderRouteImport } from './routes/quality-leader'
 import { Route as ManagerRouteImport } from './routes/manager'
 import { Route as CompetitionRouteImport } from './routes/competition'
-import { Route as CallAnalyticsRouteImport } from './routes/call-analytics'
 import { Route as AvpRouteImport } from './routes/avp'
 import { Route as AssistantManagerRouteImport } from './routes/assistant-manager'
 import { Route as AgentRouteImport } from './routes/agent'
 import { Route as IndexRouteImport } from './routes/index'
 
-const VocRoute = VocRouteImport.update({
-  id: '/voc',
-  path: '/voc',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TrainingManagerRoute = TrainingManagerRouteImport.update({
   id: '/training-manager',
   path: '/training-manager',
@@ -43,11 +35,6 @@ const TeamLeaderRoute = TeamLeaderRouteImport.update({
   path: '/team-leader',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ReportsRoute = ReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const QualityLeaderRoute = QualityLeaderRouteImport.update({
   id: '/quality-leader',
   path: '/quality-leader',
@@ -61,11 +48,6 @@ const ManagerRoute = ManagerRouteImport.update({
 const CompetitionRoute = CompetitionRouteImport.update({
   id: '/competition',
   path: '/competition',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CallAnalyticsRoute = CallAnalyticsRouteImport.update({
-  id: '/call-analytics',
-  path: '/call-analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AvpRoute = AvpRouteImport.update({
@@ -94,30 +76,24 @@ export interface FileRoutesByFullPath {
   '/agent': typeof AgentRoute
   '/assistant-manager': typeof AssistantManagerRoute
   '/avp': typeof AvpRoute
-  '/call-analytics': typeof CallAnalyticsRoute
   '/competition': typeof CompetitionRoute
   '/manager': typeof ManagerRoute
   '/quality-leader': typeof QualityLeaderRoute
-  '/reports': typeof ReportsRoute
   '/team-leader': typeof TeamLeaderRoute
   '/training-lead': typeof TrainingLeadRoute
   '/training-manager': typeof TrainingManagerRoute
-  '/voc': typeof VocRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agent': typeof AgentRoute
   '/assistant-manager': typeof AssistantManagerRoute
   '/avp': typeof AvpRoute
-  '/call-analytics': typeof CallAnalyticsRoute
   '/competition': typeof CompetitionRoute
   '/manager': typeof ManagerRoute
   '/quality-leader': typeof QualityLeaderRoute
-  '/reports': typeof ReportsRoute
   '/team-leader': typeof TeamLeaderRoute
   '/training-lead': typeof TrainingLeadRoute
   '/training-manager': typeof TrainingManagerRoute
-  '/voc': typeof VocRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,15 +101,12 @@ export interface FileRoutesById {
   '/agent': typeof AgentRoute
   '/assistant-manager': typeof AssistantManagerRoute
   '/avp': typeof AvpRoute
-  '/call-analytics': typeof CallAnalyticsRoute
   '/competition': typeof CompetitionRoute
   '/manager': typeof ManagerRoute
   '/quality-leader': typeof QualityLeaderRoute
-  '/reports': typeof ReportsRoute
   '/team-leader': typeof TeamLeaderRoute
   '/training-lead': typeof TrainingLeadRoute
   '/training-manager': typeof TrainingManagerRoute
-  '/voc': typeof VocRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -142,45 +115,36 @@ export interface FileRouteTypes {
     | '/agent'
     | '/assistant-manager'
     | '/avp'
-    | '/call-analytics'
     | '/competition'
     | '/manager'
     | '/quality-leader'
-    | '/reports'
     | '/team-leader'
     | '/training-lead'
     | '/training-manager'
-    | '/voc'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/agent'
     | '/assistant-manager'
     | '/avp'
-    | '/call-analytics'
     | '/competition'
     | '/manager'
     | '/quality-leader'
-    | '/reports'
     | '/team-leader'
     | '/training-lead'
     | '/training-manager'
-    | '/voc'
   id:
     | '__root__'
     | '/'
     | '/agent'
     | '/assistant-manager'
     | '/avp'
-    | '/call-analytics'
     | '/competition'
     | '/manager'
     | '/quality-leader'
-    | '/reports'
     | '/team-leader'
     | '/training-lead'
     | '/training-manager'
-    | '/voc'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -188,26 +152,16 @@ export interface RootRouteChildren {
   AgentRoute: typeof AgentRoute
   AssistantManagerRoute: typeof AssistantManagerRoute
   AvpRoute: typeof AvpRoute
-  CallAnalyticsRoute: typeof CallAnalyticsRoute
   CompetitionRoute: typeof CompetitionRoute
   ManagerRoute: typeof ManagerRoute
   QualityLeaderRoute: typeof QualityLeaderRoute
-  ReportsRoute: typeof ReportsRoute
   TeamLeaderRoute: typeof TeamLeaderRoute
   TrainingLeadRoute: typeof TrainingLeadRoute
   TrainingManagerRoute: typeof TrainingManagerRoute
-  VocRoute: typeof VocRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/voc': {
-      id: '/voc'
-      path: '/voc'
-      fullPath: '/voc'
-      preLoaderRoute: typeof VocRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/training-manager': {
       id: '/training-manager'
       path: '/training-manager'
@@ -229,13 +183,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TeamLeaderRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/reports': {
-      id: '/reports'
-      path: '/reports'
-      fullPath: '/reports'
-      preLoaderRoute: typeof ReportsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/quality-leader': {
       id: '/quality-leader'
       path: '/quality-leader'
@@ -255,13 +202,6 @@ declare module '@tanstack/react-router' {
       path: '/competition'
       fullPath: '/competition'
       preLoaderRoute: typeof CompetitionRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/call-analytics': {
-      id: '/call-analytics'
-      path: '/call-analytics'
-      fullPath: '/call-analytics'
-      preLoaderRoute: typeof CallAnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/avp': {
@@ -300,15 +240,12 @@ const rootRouteChildren: RootRouteChildren = {
   AgentRoute: AgentRoute,
   AssistantManagerRoute: AssistantManagerRoute,
   AvpRoute: AvpRoute,
-  CallAnalyticsRoute: CallAnalyticsRoute,
   CompetitionRoute: CompetitionRoute,
   ManagerRoute: ManagerRoute,
   QualityLeaderRoute: QualityLeaderRoute,
-  ReportsRoute: ReportsRoute,
   TeamLeaderRoute: TeamLeaderRoute,
   TrainingLeadRoute: TrainingLeadRoute,
   TrainingManagerRoute: TrainingManagerRoute,
-  VocRoute: VocRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

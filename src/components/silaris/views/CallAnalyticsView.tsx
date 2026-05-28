@@ -1,29 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
 import {
   BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts";
-import { Shell, Card, SectionTitle } from "@/components/silaris/Shell";
+import { Card, SectionTitle } from "@/components/silaris/Shell";
 import { VOLUME_BY_DAY, FATAL_DONUT, SCORE_DISTRIBUTION, CONVERSION, PARAMETER_SCORES, VOC_PAIN } from "@/lib/silaris-data";
 
-export const Route = createFileRoute("/call-analytics")({
-  head: () => ({ meta: [{ title: "Call Analytics · Silaris" }] }),
-  component: CallAnalytics,
-});
-
-function CallAnalytics() {
+export function CallAnalyticsView({ kicker = "Views" }: { kicker?: string }) {
   return (
-    <Shell
-      copilot={{
-        summary: "1,895 calls analyzed this week — Fri lower volume (309). Objection-handling parameter is the lowest at 71%.",
-        working: ["100% STT coverage", "Clean-call share 81%", "Compliance parameter 96%"],
-        attention: ["Objection-handling parameter 71%", "Fatal share 1% — 4 calls"],
-        suggestions: [
-          { title: "Drill objection parameter", detail: "By TL and shift" },
-          { title: "Export weekly QC pack", detail: "PDF + raw STT links" },
-        ],
-      }}
-    >
-      <SectionTitle kicker="Views">Call Analytics</SectionTitle>
+    <>
+      <SectionTitle kicker={kicker}>Call Analytics</SectionTitle>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-5">
         <Card title="Call Volume by Day" className="xl:col-span-2">
@@ -126,6 +110,6 @@ function CallAnalytics() {
           </div>
         </Card>
       </div>
-    </Shell>
+    </>
   );
 }
