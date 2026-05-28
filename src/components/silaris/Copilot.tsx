@@ -1,4 +1,5 @@
 import { Sparkles, Check, AlertTriangle, MessageSquare } from "lucide-react";
+import { useExecutionPanel } from "./ExecutionPanel";
 
 export interface CopilotProps {
   working: string[];
