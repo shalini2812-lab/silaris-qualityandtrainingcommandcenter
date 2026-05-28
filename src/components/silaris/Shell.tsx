@@ -24,6 +24,7 @@ function useCurrentTab(): TabKey {
 
 function TopTabs() {
   const active = useCurrentTab();
+  const path = useRouterState({ select: (r) => r.location.pathname });
   const navigate = useNavigate();
   return (
     <div className="border-b border-border bg-surface-2/40 px-5">
@@ -37,9 +38,8 @@ function TopTabs() {
               type="button"
               onClick={() =>
                 navigate({
-                  to: ".",
-                  search: t.key === "overview" ? {} : ({ tab: t.key } as any),
-                  replace: false,
+                  to: path as any,
+                  search: (t.key === "overview" ? {} : { tab: t.key }) as any,
                 })
               }
               className={[
