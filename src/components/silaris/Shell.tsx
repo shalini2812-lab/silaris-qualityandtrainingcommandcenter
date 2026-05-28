@@ -1,16 +1,85 @@
 import type { ReactNode } from "react";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { LayoutDashboard, BarChart3, Mic2 } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { Header, Footer } from "./Header";
 import { Copilot, type CopilotProps } from "./Copilot";
+import { ProcessOverviewView } from "./views/ProcessOverviewView";
+import { CallAnalyticsView } from "./views/CallAnalyticsView";
+import { VocView } from "./views/VocView";
 
-export function Shell({ children, copilot }: { children: ReactNode; copilot: CopilotProps }) {
+type TabKey = "overview" | "analytics" | "voc";
+
+const TABS: { key: TabKey; label: string; icon: any }[] = [
+  { key: "overview", label: "Process Overview", icon: LayoutDashboard },
+  { key: "analytics", label: "Call Analytics", icon: BarChart3 },
+  { key: "voc", label: "Voice of Customer", icon: Mic2 },
+];
+
+function useCurrentTab(): TabKey {
+  const search = useRouterState({ select: (r) => r.location.search as Record<string, unknown> });
+  const t = (search?.tab as string) ?? "overview";
+  return (TABS.some((x) => x.key === t) ? t : "overview") as TabKey;
+}
+
+function TopTabs() {
+  const path = useRouterState({ select: (r) => r.location.pathname });
+  const active = useCurrentTab();
+  return (
+    <div className="border-b border-border bg-surface-2/40 px-5">
+      <nav className="flex items-end gap-1 -mb-px">
+        {TABS.map((t) => {
+          const isActive = active === t.key;
+          const Icon = t.icon;
+          return (
+            <Link
+              key={t.key}
+              to={path}
+              search={t.key === "overview" ? {} : { tab: t.key }}
+              className={[
+                "flex items-center gap-2 px-4 py-2.5 text-[13.5px] font-medium border-b-2 transition-colors",
+                isActive
+                  ? "border-acc-green text-acc-green"
+                  : "border-transparent text-text-secondary hover:text-foreground hover:border-border",
+              ].join(" ")}
+            >
+              <Icon className="size-4" />
+              {t.label}
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
+  );
+}
+
+export function Shell({
+  children,
+  copilot,
+  /** If true, hide the top tabs (for pages that aren't role/overview scoped, e.g. Competition). */
+  hideTabs = false,
+}: {
+  children: ReactNode;
+  copilot: CopilotProps;
+  hideTabs?: boolean;
+}) {
+  const tab = useCurrentTab();
+
+  let body: ReactNode = children;
+  if (!hideTabs) {
+    if (tab === "analytics") body = <CallAnalyticsView />;
+    else if (tab === "voc") body = <VocView />;
+    // overview => children (role's default dashboard)
+  }
+
   return (
     <div className="h-screen flex bg-background text-foreground">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <Header />
+        {!hideTabs && <TopTabs />}
         <main className="flex-1 overflow-y-auto p-5 min-w-0">
-          {children}
+          {body}
         </main>
         <Footer />
       </div>
@@ -18,6 +87,9 @@ export function Shell({ children, copilot }: { children: ReactNode; copilot: Cop
     </div>
   );
 }
+
+// Re-export views for convenience
+export { ProcessOverviewView, CallAnalyticsView, VocView };
 
 // Reusable UI
 export function Card({
@@ -51,12 +123,12 @@ export function Badge({
   children, tone = "neutral",
 }: { children: ReactNode; tone?: "green" | "amber" | "mauve" | "blue" | "sand" | "neutral" | "red" }) {
   const map: Record<string, string> = {
-    green:   "text-acc-green border-acc-green/40 bg-acc-green/10",
-    amber:   "text-acc-amber border-acc-amber/40 bg-acc-amber/10",
-    mauve:   "text-acc-mauve border-acc-mauve/40 bg-acc-mauve/10",
-    blue:    "text-acc-blue  border-acc-blue/40  bg-acc-blue/10",
-    sand:    "text-acc-sand  border-acc-sand/40  bg-acc-sand/10",
-    red:     "text-destructive border-destructive/40 bg-destructive/10",
+    green: "text-acc-green border-acc-green/40 bg-acc-green/10",
+    amber: "text-acc-amber border-acc-amber/40 bg-acc-amber/10",
+    mauve: "text-acc-mauve border-acc-mauve/40 bg-acc-mauve/10",
+    blue: "text-acc-blue  border-acc-blue/40  bg-acc-blue/10",
+    sand: "text-acc-sand  border-acc-sand/40  bg-acc-sand/10",
+    red: "text-destructive border-destructive/40 bg-destructive/10",
     neutral: "text-text-secondary border-border bg-secondary",
   };
   return (
