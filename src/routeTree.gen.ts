@@ -9,9 +9,27 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TrainingLeadRouteImport } from './routes/training-lead'
+import { Route as TeamLeaderRouteImport } from './routes/team-leader'
+import { Route as QualityLeaderRouteImport } from './routes/quality-leader'
 import { Route as AgentRouteImport } from './routes/agent'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TrainingLeadRoute = TrainingLeadRouteImport.update({
+  id: '/training-lead',
+  path: '/training-lead',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeamLeaderRoute = TeamLeaderRouteImport.update({
+  id: '/team-leader',
+  path: '/team-leader',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QualityLeaderRoute = QualityLeaderRouteImport.update({
+  id: '/quality-leader',
+  path: '/quality-leader',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgentRoute = AgentRouteImport.update({
   id: '/agent',
   path: '/agent',
@@ -26,31 +44,75 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agent': typeof AgentRoute
+  '/quality-leader': typeof QualityLeaderRoute
+  '/team-leader': typeof TeamLeaderRoute
+  '/training-lead': typeof TrainingLeadRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agent': typeof AgentRoute
+  '/quality-leader': typeof QualityLeaderRoute
+  '/team-leader': typeof TeamLeaderRoute
+  '/training-lead': typeof TrainingLeadRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/agent': typeof AgentRoute
+  '/quality-leader': typeof QualityLeaderRoute
+  '/team-leader': typeof TeamLeaderRoute
+  '/training-lead': typeof TrainingLeadRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/agent'
+  fullPaths:
+    | '/'
+    | '/agent'
+    | '/quality-leader'
+    | '/team-leader'
+    | '/training-lead'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/agent'
-  id: '__root__' | '/' | '/agent'
+  to: '/' | '/agent' | '/quality-leader' | '/team-leader' | '/training-lead'
+  id:
+    | '__root__'
+    | '/'
+    | '/agent'
+    | '/quality-leader'
+    | '/team-leader'
+    | '/training-lead'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgentRoute: typeof AgentRoute
+  QualityLeaderRoute: typeof QualityLeaderRoute
+  TeamLeaderRoute: typeof TeamLeaderRoute
+  TrainingLeadRoute: typeof TrainingLeadRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/training-lead': {
+      id: '/training-lead'
+      path: '/training-lead'
+      fullPath: '/training-lead'
+      preLoaderRoute: typeof TrainingLeadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/team-leader': {
+      id: '/team-leader'
+      path: '/team-leader'
+      fullPath: '/team-leader'
+      preLoaderRoute: typeof TeamLeaderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quality-leader': {
+      id: '/quality-leader'
+      path: '/quality-leader'
+      fullPath: '/quality-leader'
+      preLoaderRoute: typeof QualityLeaderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/agent': {
       id: '/agent'
       path: '/agent'
@@ -71,6 +133,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgentRoute: AgentRoute,
+  QualityLeaderRoute: QualityLeaderRoute,
+  TeamLeaderRoute: TeamLeaderRoute,
+  TrainingLeadRoute: TrainingLeadRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
