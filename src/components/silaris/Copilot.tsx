@@ -9,6 +9,7 @@ export interface CopilotProps {
 }
 
 export function Copilot({ working, attention, suggestions, summary }: CopilotProps) {
+  const { openFromSuggestion } = useExecutionPanel();
   return (
     <aside className="w-[310px] shrink-0 border-l border-border bg-surface-2 flex flex-col">
       <div className="px-4 py-3 border-b border-border flex items-center gap-2">
