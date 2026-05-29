@@ -1,4 +1,5 @@
 import { Card, Badge } from "./Shell";
+import { useExecutionPanel } from "./ExecutionPanel";
 import { TRAINING_PIPELINE, TRAINING_AGENTS } from "@/lib/silaris-data";
 
 const toneClasses: Record<string, string> = {
