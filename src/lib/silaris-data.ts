@@ -424,13 +424,20 @@ export const AGENTS: Agent[] = [
 ];
 
 // Team Leader view
-export const TL_AGENTS = [
-  { name: "Anita Sharma",  cqi: 94.0, cat: "A", trend: "up",   audited: 92, fatal: 0, nonFatal: 1,  train: "—",         cap: "—" },
-  { name: "Priya Menon",   cqi: 91.6, cat: "A", trend: "up",   audited: 87, fatal: 0, nonFatal: 4,  train: "Active",    cap: "—" },
-  { name: "Rahul Sharma",  cqi: 85.5, cat: "B", trend: "up",   audited: 74, fatal: 0, nonFatal: 6,  train: "Complete",  cap: "—" },
-  { name: "Sneha Joshi",   cqi: 81.9, cat: "B", trend: "up",   audited: 82, fatal: 0, nonFatal: 5,  train: "Complete",  cap: "—" },
-  { name: "Manish Verma",  cqi: 69.9, cat: "C", trend: "flat", audited: 78, fatal: 0, nonFatal: 12, train: "Escalated", cap: "CAP-1" },
-  { name: "Deepak Tiwari", cqi: 62.7, cat: "C", trend: "down", audited: 62, fatal: 3, nonFatal: 9,  train: "Mandatory", cap: "CAP-2" },
+export type AgentStatus = "STAR" | "COACH" | "WATCH" | "CAP";
+export const TL_AGENTS: {
+  name: string; cqi: number; cat: string; trend: string; audited: number;
+  fatal: number; nonFatal: number; train: string; cap: string; status?: AgentStatus;
+}[] = [
+  { name: "Anita Sharma",   cqi: 94.0, cat: "A", trend: "up",   audited: 92, fatal: 0, nonFatal: 1,  train: "—",         cap: "—",     status: "STAR" },
+  { name: "Rohit Bansal",   cqi: 93.4, cat: "A", trend: "up",   audited: 88, fatal: 0, nonFatal: 2,  train: "Complete",  cap: "—" },
+  { name: "Meera Iyer",     cqi: 92.8, cat: "A", trend: "up",   audited: 85, fatal: 0, nonFatal: 2,  train: "—",         cap: "—" },
+  { name: "Sanjay Pillai",  cqi: 92.1, cat: "A", trend: "flat", audited: 79, fatal: 0, nonFatal: 3,  train: "Complete",  cap: "—" },
+  { name: "Rahul Sharma",   cqi: 85.5, cat: "B", trend: "up",   audited: 74, fatal: 0, nonFatal: 6,  train: "Complete",  cap: "—" },
+  { name: "Sneha Joshi",    cqi: 81.9, cat: "B", trend: "up",   audited: 82, fatal: 0, nonFatal: 5,  train: "Complete",  cap: "—" },
+  { name: "Priya Menon",    cqi: 79.0, cat: "C", trend: "down", audited: 87, fatal: 0, nonFatal: 9,  train: "Active",    cap: "—",     status: "COACH" },
+  { name: "Manish Verma",   cqi: 69.9, cat: "C", trend: "flat", audited: 78, fatal: 0, nonFatal: 12, train: "Escalated", cap: "CAP-1", status: "WATCH" },
+  { name: "Deepak Tiwari",  cqi: 62.7, cat: "C", trend: "down", audited: 62, fatal: 3, nonFatal: 9,  train: "Mandatory", cap: "CAP-2", status: "CAP" },
 ];
 
 export const CRITICAL_PENDING = [
