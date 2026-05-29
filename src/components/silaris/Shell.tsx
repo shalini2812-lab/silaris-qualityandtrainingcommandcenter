@@ -19,6 +19,25 @@ const TABS: { key: TabKey; label: string; icon: any }[] = [
   { key: "voc", label: "Voice of Customer", icon: Mic2 },
 ];
 
+const PROCESS_OVERVIEW_COPILOT: CopilotProps = {
+  summary:
+    "Process CQI 87.1%, forecast 88.7% by W6. Fatal rate at a record low. AI training cohorts converting — 72% of trained agents improved in 5 days.",
+  working: [
+    "Fatal rate down to 0.21% (from 0.4%)",
+    "72% of trained agents improved in 5 days",
+    "Pooja S. team CQI up 3pp week-over-week",
+  ],
+  attention: [
+    "Suresh B. team CQI down 3pp — drill required",
+    "Competition objection handling stuck at 28% defect share",
+    "1 agent on CAP-2 (Deepak Tiwari) — review pending",
+  ],
+  suggestions: [
+    { title: "Deploy refreshed HDFC counter-script", detail: "Pushes new FMC + admin refund pivots to 34 Cat-B agents." },
+    { title: "Schedule calibration session", detail: "Variance > 4pp between TL Pooja S. and Suresh B." },
+  ],
+};
+
 function useCurrentTab(): TabKey {
   const search = useRouterState({ select: (r) => r.location.search as Record<string, unknown> });
   const t = (search?.tab as string) ?? "overview";
