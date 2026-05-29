@@ -7,7 +7,7 @@ import {
 import { X, FileText, GraduationCap, TrendingUp, Search, ChevronDown } from "lucide-react";
 import { Shell, Card, SectionTitle, Badge, CatBadge } from "@/components/silaris/Shell";
 import { useExecutionPanel } from "@/components/silaris/ExecutionPanel";
-import { AGENTS, AGENT_ROSTER, type Agent, type RosterAgent, type TrainingStatus, type CapStatus } from "@/lib/silaris-data";
+import { AGENTS, AGENT_ROSTER, type Agent, type RosterAgent, type TrainingStatus, type CapStatus, type AgentStatus } from "@/lib/silaris-data";
 
 export const Route = createFileRoute("/agent")({
   head: () => ({ meta: [{ title: "Agent · My Dashboard · Silaris" }] }),
