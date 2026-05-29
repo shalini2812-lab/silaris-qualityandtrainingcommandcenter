@@ -78,6 +78,7 @@ function TLView() {
                     <td className="py-2.5 text-right font-mono text-text-secondary">{a.nonFatal}</td>
                     <td className="py-2.5 text-[12px] text-text-secondary">{a.train}</td>
                     <td className="py-2.5">{a.cap !== "—" ? <Badge tone="amber">{a.cap}</Badge> : <span className="text-dim">—</span>}</td>
+                    <td className="py-2.5">{a.status ? <Badge tone={a.status === "STAR" ? "green" : a.status === "COACH" ? "sand" : a.status === "WATCH" ? "amber" : "mauve"}>{a.status}</Badge> : <span className="text-dim">—</span>}</td>
                   </tr>
                 );
               })}
