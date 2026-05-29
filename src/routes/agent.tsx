@@ -203,8 +203,15 @@ function RosterRow({ a, displayIdx, onPick }: { a: RosterAgent; displayIdx: numb
       </td>
       <td className="py-2.5 px-2"><TrainingPill s={a.training} /></td>
       <td className="py-2.5 px-2"><CapPill s={a.cap} /></td>
+      <td className="py-2.5 px-2"><StatusPill s={a.status} /></td>
     </tr>
   );
+}
+
+function StatusPill({ s }: { s?: AgentStatus }) {
+  if (!s) return <span className="text-dim text-[12px]">—</span>;
+  const tone = s === "STAR" ? "green" : s === "COACH" ? "sand" : s === "WATCH" ? "amber" : "mauve";
+  return <Badge tone={tone as any}>{s}</Badge>;
 }
 
 function TrainingPill({ s }: { s: TrainingStatus }) {
