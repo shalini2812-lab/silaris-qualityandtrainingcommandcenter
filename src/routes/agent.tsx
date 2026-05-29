@@ -24,6 +24,125 @@ const FILTERS: { key: FilterKey; label: string }[] = [
   { key: "cap", label: "Under CAP" },
 ];
 
+import type { CopilotProps } from "@/components/silaris/Copilot";
+
+const DEFAULT_AGENT_COPILOT: CopilotProps = {
+  summary: "Roster live — 20 agents · 6 in training · 3 under CAP. Click any agent to inspect.",
+  working: [
+    "9 agents in Category A (45% of roster)",
+    "Anita Sharma — 94% reference-quality coach",
+    "Sneha Joshi closing module +5 pts in 3 wks",
+  ],
+  attention: [
+    "Deepak Tiwari — CAP-2 fatal flagged",
+    "Manish Verma — escalated to classroom",
+    "2 assessments due today (Rahul, Aarti)",
+  ],
+  suggestions: [
+    { title: "Deploy competition cheat sheet to 8 agents", detail: "HDFC pivot script — auto-deliver pre-shift to all Cat B handling Savings." },
+    { title: "Reassign 120 leads off Deepak Tiwari", detail: "Protect lead quality while CAP-2 is active — route to 3 Cat A agents." },
+    { title: "Schedule classroom for Manish Verma", detail: "AI coaching exhausted — escalate to Trainer + TL shadowing for 2 weeks." },
+  ],
+};
+
+const AGENT_COPILOTS: Record<string, CopilotProps> = {
+  priya: {
+    summary: "Competition handling improved from 2/5 to 4/5 this week. She used claim settlement ratio for the first time — keep monitoring.",
+    working: [
+      "Competition handling 2/5 → 4/5 in one week",
+      "First-ever use of claim-ratio pivot on Call #5821",
+      "Engagement on AI coaching cards 100% past 5 days",
+    ],
+    attention: [
+      "Still soft on HDFC FMC counter — 2 missed pivots",
+      "Day 5 assessment due tomorrow",
+    ],
+    suggestions: [
+      { title: "Push refreshed HDFC counter-script to Priya", detail: "FMC reduction + admin refund pivot — auto-deliver pre-shift tomorrow." },
+      { title: "Continue STT monitoring 3 more days", detail: "Confirm pivots hold under live pressure before exit." },
+    ],
+  },
+  deepak: {
+    summary: "3rd fatal error. CAP-2 active. Suspend from outbound immediately. Compliance refresher mandatory.",
+    working: ["Lead-quality cohort already protected — 120 leads rerouted"],
+    attention: [
+      "3rd fatal in 30 days — unauthorized fee waiver promise",
+      "CAP-2 active · 5 days remaining",
+      "IRDAI exposure if pattern repeats",
+    ],
+    suggestions: [
+      { title: "Suspend Deepak from outbound immediately", detail: "Dual approval routed to Manager + QA Head. Reinstate only after refresher pass." },
+      { title: "Mandatory compliance refresher", detail: "IRDAI Master Circular Clause 7.3 module + 48h supervised calls." },
+    ],
+  },
+  sneha: {
+    summary: "Success story! Improved C → B in 4 weeks. Consider for STAR nomination if she reaches 75+ next week.",
+    working: [
+      "Cat C → Cat B in 4 weeks",
+      "Closing technique +5 pts (urgency-close drill)",
+      "Zero fatals · zero complaints",
+    ],
+    attention: ["Watch for plateau — push to 75+ next week"],
+    suggestions: [
+      { title: "Nominate Sneha for STAR shortlist", detail: "If CQI ≥ 75 next week, queue her for the monthly STAR review." },
+      { title: "Pair Sneha with Anita for peer coaching", detail: "Reinforces closing technique + builds bench strength." },
+    ],
+  },
+  manish: {
+    summary: "AI coaching failed after 5 days. Escalate to Trainer. Schedule human-led product knowledge session.",
+    working: ["Tone & compliance discipline holding"],
+    attention: [
+      "AI coaching · 0 pt movement over 5 days",
+      "Product knowledge — riders & fund options",
+      "Customer frustration spikes on rider questions",
+    ],
+    suggestions: [
+      { title: "Escalate Manish to classroom — 2-week intensive", detail: "Trainer + TL shadowing on product knowledge (riders, fund options)." },
+      { title: "Pause AI coaching path", detail: "Close current AI plan and log escalation audit ESC-2026-0042." },
+    ],
+  },
+  anita: {
+    summary: "Anita is the reference coach (CQI 94%). Lean on her as peer-trainer for Priya and Sneha.",
+    working: [
+      "CQI 94% · STAR for 3 months running",
+      "Zero fatals · 1 non-fatal in 30 days",
+      "Advanced objection pack +3 pts even on a strong base",
+    ],
+    attention: ["Quietly approaching burnout — workload at top of band"],
+    suggestions: [
+      { title: "Assign Anita as peer-coach for Priya", detail: "1 session/week on competition pivots — counts toward L&D credits." },
+      { title: "Protect Anita's lead mix", detail: "Cap her premium-lead allocation at current level for 2 weeks." },
+    ],
+  },
+  rahul: {
+    summary: "Rahul completed T&C timing module. Day 5 assessment due — last 5 calls show 3/5 disclosing on time.",
+    working: ["T&C disclosure timing 60% → 80%", "Module completion on Day 4 (ahead of plan)"],
+    attention: ["1 customer complaint last week", "Assessment due today"],
+    suggestions: [
+      { title: "Run Day 5 assessment now", detail: "Auto-score last 10 calls on T&C timing — exit if ≥ 4/5." },
+      { title: "Push T&C timing nudge for 3 more days", detail: "Pre-call card · only on Term + ULIP product types." },
+    ],
+  },
+};
+
+function buildAgentCopilot(keyAgent: Agent | null, selected: RosterAgent | null): CopilotProps {
+  if (keyAgent && AGENT_COPILOTS[keyAgent.id]) return AGENT_COPILOTS[keyAgent.id];
+  if (selected) {
+    return {
+      summary: `${selected.name} · CQI ${selected.cqi}% · Cat ${selected.cat}. ${selected.trainingNote ?? "No active training plan."}`,
+      working: [`Quality score ${selected.quality}`, `SPD ${selected.spd}`, `${selected.complaints} complaints (30d)`],
+      attention: [
+        selected.cap !== "None" ? `${selected.cap} active — review required` : "No CAP active",
+        selected.training !== "None" ? `Training: ${selected.training}` : "No training assigned",
+      ],
+      suggestions: [
+        { title: `Deploy coaching plan for ${selected.name}`, detail: `Targeted 3-day STT watch with daily micro-coaching · owner ${selected.tl}.` },
+      ],
+    };
+  }
+  return DEFAULT_AGENT_COPILOT;
+}
+
 function AgentView() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
