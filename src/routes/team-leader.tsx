@@ -57,6 +57,7 @@ function TLView() {
                 <th className="text-right py-2 font-medium">Non-Fatal</th>
                 <th className="text-left py-2 font-medium">Training</th>
                 <th className="text-left py-2 font-medium">CAP</th>
+                <th className="text-left py-2 font-medium">Status</th>
               </tr>
             </thead>
             <tbody>
