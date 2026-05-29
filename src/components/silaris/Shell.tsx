@@ -101,7 +101,7 @@ export function Shell({
 }
 
 // Re-export views for convenience
-export { ProcessOverviewView, CallAnalyticsView, VocView };
+export { ProcessOverviewView, CallAnalyticsView, ScenariosObjectionsView, VocView };
 
 // Reusable UI
 export function Card({
