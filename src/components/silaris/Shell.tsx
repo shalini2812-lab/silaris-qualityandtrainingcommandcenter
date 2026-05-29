@@ -77,6 +77,7 @@ export function Shell({
   let body: ReactNode = children;
   if (!hideTabs) {
     if (tab === "analytics") body = <CallAnalyticsView />;
+    else if (tab === "scenarios") body = <ScenariosObjectionsView />;
     else if (tab === "voc") body = <VocView />;
     // overview => children (role's default dashboard)
   }
