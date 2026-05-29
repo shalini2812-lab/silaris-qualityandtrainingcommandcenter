@@ -37,6 +37,7 @@ export function TrainingPipeline() {
 }
 
 export function AgentTrainingTable() {
+  const exec = useExecutionPanel();
   return (
     <Card title="Agents Currently in Training">
       <div className="overflow-x-auto">
