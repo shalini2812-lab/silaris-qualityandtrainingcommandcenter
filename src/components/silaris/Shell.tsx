@@ -75,9 +75,29 @@ export function Shell({
   const tab = useCurrentTab();
 
   let body: ReactNode = children;
+  let effectiveCopilot = copilot;
   if (!hideTabs) {
     if (tab === "analytics") body = <CallAnalyticsView />;
-    else if (tab === "scenarios") body = <ScenariosObjectionsView />;
+    else if (tab === "scenarios") {
+      body = <ScenariosObjectionsView />;
+      effectiveCopilot = {
+        summary:
+          "Top rising scenario: Competition comparison — up 8% this month. AI has deployed updated HDFC counter-scripts to 34 agents.",
+        working: [
+          "WhatsApp deflection scenario captured — 98 calls flagged",
+          "'Money issue' objections trending down 12% MoM",
+          "Updated HDFC counter-script live on 34 agent desktops",
+        ],
+        attention: [
+          "Competition comparison rising — +8% this month",
+          "WhatsApp send-and-go pattern rising — confirm callback discipline",
+        ],
+        suggestions: [
+          { title: "Push refreshed HDFC battle card to all Cat B agents", detail: "Auto-deliver pre-shift; covers FMC reduction + admin refund + 22 fund options." },
+          { title: "Add WhatsApp callback drill to weekly huddle", detail: "Mandatory callback time anchor — TLs to assess on 5 calls per agent this week." },
+        ],
+      };
+    }
     else if (tab === "voc") body = <VocView />;
     // overview => children (role's default dashboard)
   }
@@ -94,7 +114,7 @@ export function Shell({
           </main>
           <Footer />
         </div>
-        <Copilot {...copilot} />
+        <Copilot {...effectiveCopilot} />
       </div>
     </ExecutionPanelProvider>
   );
