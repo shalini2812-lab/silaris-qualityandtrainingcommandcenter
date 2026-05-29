@@ -233,6 +233,8 @@ function CapPill({ s }: { s: CapStatus }) {
 // ============================================================
 // Slide-in agent detail panel
 // ============================================================
+type DetailTab = "overview" | "rebuttals" | "training";
+
 function AgentDetailPanel({
   roster, keyAgent, onClose, onOpenFeedback, onOpenTraining,
 }: {
@@ -242,6 +244,8 @@ function AgentDetailPanel({
   onOpenFeedback: () => void;
   onOpenTraining: () => void;
 }) {
+  const [tab, setTab] = useState<DetailTab>("overview");
+
   // Synthesize 4-week trend
   const trend = keyAgent?.trend ?? [
     Math.max(50, roster.cqi - 4),
@@ -249,7 +253,6 @@ function AgentDetailPanel({
     Math.max(50, roster.cqi - 1),
     roster.cqi,
   ];
-  // Synthesize dimensions when not a key agent
   const dims = keyAgent?.dimensions ?? synthDims(roster.cqi);
   const calls = keyAgent?.todaysCalls ?? synthCalls(roster);
 
@@ -258,10 +261,16 @@ function AgentDetailPanel({
     : roster.cat === "B" ? "text-acc-sand"
     : "text-acc-mauve";
 
+  const TABS: { key: DetailTab; label: string }[] = [
+    { key: "overview", label: "Overview" },
+    { key: "rebuttals", label: "Suggested Rebuttals" },
+    { key: "training", label: "Training Plan" },
+  ];
+
   return (
     <div className="fixed inset-0 z-50 flex">
       <div className="flex-1 bg-background/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="w-full max-w-[760px] bg-card border-l border-border flex flex-col animate-in slide-in-from-right duration-200">
+      <div className="w-full max-w-[820px] bg-card border-l border-border flex flex-col animate-in slide-in-from-right duration-200">
         <header className="px-5 py-3.5 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div>
@@ -283,111 +292,240 @@ function AgentDetailPanel({
           </div>
         </header>
 
+        {/* Tabs */}
+        <div className="px-5 pt-3 border-b border-border flex gap-1">
+          {TABS.map((t) => {
+            const active = tab === t.key;
+            return (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={`relative text-[13px] px-3.5 py-2 rounded-t transition-colors ${
+                  active
+                    ? "text-acc-green border-b-2 border-acc-green -mb-px"
+                    : "text-text-secondary hover:text-foreground border-b-2 border-transparent -mb-px"
+                }`}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
-          {/* Trend + dimensions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card title="4-Week CQI Trend">
-              <div className="h-[160px]">
-                <ResponsiveContainer>
-                  <LineChart data={trend.map((v, i) => ({ w: `W${i + 1}`, v }))}>
-                    <CartesianGrid stroke="#1c2940" vertical={false} />
-                    <XAxis dataKey="w" stroke="#94a3b8" tick={{ fontSize: 11 }} />
-                    <YAxis domain={["dataMin-3", "dataMax+3"]} stroke="#94a3b8" tick={{ fontSize: 10 }} />
-                    <Tooltip contentStyle={{ background: "#111827", border: "1px solid #1c2940", borderRadius: 8, fontSize: 12 }} />
-                    <Line type="monotone" dataKey="v" stroke="#34d399" strokeWidth={2} dot={{ r: 3, fill: "#34d399" }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
-
-            <Card title="CQI by Dimension">
-              <div className="h-[160px]">
-                <ResponsiveContainer>
-                  <BarChart
-                    data={dims.map((d) => ({ ...d, pct: Math.round((d.score / d.max) * 100) }))}
-                    layout="vertical"
-                    margin={{ left: 30 }}
-                  >
-                    <CartesianGrid stroke="#1c2940" horizontal={false} />
-                    <XAxis type="number" domain={[0, 100]} stroke="#94a3b8" tick={{ fontSize: 10 }} unit="%" />
-                    <YAxis type="category" dataKey="code" stroke="#94a3b8" tick={{ fontSize: 11 }} width={32} />
-                    <Tooltip contentStyle={{ background: "#111827", border: "1px solid #1c2940", borderRadius: 8, fontSize: 12 }}
-                      formatter={(v: any, _n, p: any) => [`${v}% (${p.payload.score}/${p.payload.max})`, p.payload.name]} />
-                    <Bar dataKey="pct" radius={[0, 4, 4, 0]}>
-                      {dims.map((d, i) => {
-                        const p = (d.score / d.max) * 100;
-                        const fill = p >= 85 ? "#34d399" : p >= 70 ? "#7ba4cc" : "#d4a574";
-                        return <Cell key={i} fill={fill} />;
-                      })}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
-          </div>
-
-          {/* Calls today */}
-          <Card title="My Calls Today">
-            <table className="w-full text-[12.5px]">
-              <thead className="text-dim text-[10.5px] uppercase tracking-wider">
-                <tr>
-                  <th className="text-left py-2 font-medium">Call ID</th>
-                  <th className="text-left py-2 font-medium">Duration</th>
-                  <th className="text-left py-2 font-medium">CQI</th>
-                  <th className="text-left py-2 font-medium">Status</th>
-                  <th className="text-left py-2 font-medium">Observation</th>
-                </tr>
-              </thead>
-              <tbody>
-                {calls.slice(0, 4).map((c) => {
-                  const tone = c.tag === "Clean" ? "green" : c.tag === "Non-Fatal" ? "sand" : "mauve";
-                  return (
-                    <tr key={c.id} className="border-t border-border">
-                      <td className="py-2 font-mono">{c.id}</td>
-                      <td className="py-2 font-mono">{c.duration}</td>
-                      <td className="py-2 font-mono">{c.cqi}</td>
-                      <td className="py-2"><Badge tone={tone as any}>{c.tag}</Badge></td>
-                      <td className="py-2 text-text-secondary">{c.obs}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </Card>
-
-          {/* Training history */}
-          <Card title="Training History">
-            <ul className="text-[13px] space-y-2">
-              {synthHistory(roster).map((h, i) => (
-                <li key={i} className="flex items-center justify-between gap-3 border-b border-border/60 last:border-0 pb-2 last:pb-0">
-                  <div>
-                    <div className="font-medium">{h.title}</div>
-                    <div className="text-[12px] text-dim">{h.date} · {h.status}</div>
-                  </div>
-                  <div className="font-mono text-[13px] text-acc-green">{h.score}</div>
-                </li>
-              ))}
-            </ul>
-          </Card>
-
-          {/* Actions */}
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={onOpenFeedback}
-              className="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3.5 py-2 text-[13px] hover:border-acc-blue/40"
-            >
-              <FileText className="size-4 text-acc-blue" /> View Full Feedback Sheet
-            </button>
-            <button
-              onClick={onOpenTraining}
-              className="inline-flex items-center gap-2 rounded-md border border-acc-green/40 bg-acc-green/10 px-3.5 py-2 text-[13px] text-acc-green hover:bg-acc-green/20"
-            >
-              <GraduationCap className="size-4" />
-              {roster.keyId === "anita" ? "No Training Plan — STAR Performer" : "View Training Plan"}
-            </button>
-          </div>
+          {tab === "overview" && (
+            <OverviewTab
+              roster={roster}
+              keyAgent={keyAgent}
+              trend={trend}
+              dims={dims}
+              calls={calls}
+              onOpenFeedback={onOpenFeedback}
+              onOpenTraining={onOpenTraining}
+            />
+          )}
+          {tab === "rebuttals" && <RebuttalsTab roster={roster} keyAgent={keyAgent} />}
+          {tab === "training" && (
+            keyAgent
+              ? <TrainingPlan a={keyAgent} />
+              : <GenericTraining r={roster} />
+          )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ---------- Overview tab ----------
+function OverviewTab({
+  roster, keyAgent, trend, dims, calls, onOpenFeedback, onOpenTraining,
+}: {
+  roster: RosterAgent;
+  keyAgent: Agent | null;
+  trend: number[];
+  dims: Agent["dimensions"];
+  calls: Agent["todaysCalls"];
+  onOpenFeedback: () => void;
+  onOpenTraining: () => void;
+}) {
+  const pattern = keyAgent?.feedback.aiPattern
+    ?? `${roster.name} sits at CQI ${roster.cqi.toFixed(1)}% (Cat ${roster.cat}). Trend is stable. ${roster.training !== "None" ? `Currently in ${roster.training} on "${roster.trainingNote ?? "skill refresh"}".` : "No active training need."}`;
+  const callsSampled = keyAgent ? (keyAgent.callsWeek ?? 47) : 32;
+  const strengths = keyAgent?.feedback.strengths ?? ["Compliance discipline", "Polite, customer-first tone"];
+  const improvements = keyAgent?.feedback.improvements ?? ["Tighten closing summary", "Confirm next-step on every call"];
+
+  return (
+    <>
+      {/* Trend + dimensions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card title="4-Week CQI Trend">
+          <div className="h-[160px]">
+            <ResponsiveContainer>
+              <LineChart data={trend.map((v, i) => ({ w: `W${i + 1}`, v }))}>
+                <CartesianGrid stroke="#1c2940" vertical={false} />
+                <XAxis dataKey="w" stroke="#94a3b8" tick={{ fontSize: 11 }} />
+                <YAxis domain={["dataMin-3", "dataMax+3"]} stroke="#94a3b8" tick={{ fontSize: 10 }} />
+                <Tooltip contentStyle={{ background: "#111827", border: "1px solid #1c2940", borderRadius: 8, fontSize: 12 }} />
+                <Line type="monotone" dataKey="v" stroke="#34d399" strokeWidth={2} dot={{ r: 3, fill: "#34d399" }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+
+        <Card title="CQI by Dimension">
+          <div className="h-[160px]">
+            <ResponsiveContainer>
+              <BarChart
+                data={dims.map((d) => ({ ...d, pct: Math.round((d.score / d.max) * 100) }))}
+                layout="vertical"
+                margin={{ left: 30 }}
+              >
+                <CartesianGrid stroke="#1c2940" horizontal={false} />
+                <XAxis type="number" domain={[0, 100]} stroke="#94a3b8" tick={{ fontSize: 10 }} unit="%" />
+                <YAxis type="category" dataKey="code" stroke="#94a3b8" tick={{ fontSize: 11 }} width={32} />
+                <Tooltip contentStyle={{ background: "#111827", border: "1px solid #1c2940", borderRadius: 8, fontSize: 12 }}
+                  formatter={(v: any, _n, p: any) => [`${v}% (${p.payload.score}/${p.payload.max})`, p.payload.name]} />
+                <Bar dataKey="pct" radius={[0, 4, 4, 0]}>
+                  {dims.map((d, i) => {
+                    const p = (d.score / d.max) * 100;
+                    const fill = p >= 85 ? "#34d399" : p >= 70 ? "#7ba4cc" : "#d4a574";
+                    return <Cell key={i} fill={fill} />;
+                  })}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+      </div>
+
+      {/* Calls today — HIGH / LOW columns */}
+      <Card title="My Calls Today">
+        <div className="overflow-x-auto">
+          <table className="w-full text-[12.5px]">
+            <thead className="text-dim text-[10.5px] uppercase tracking-wider">
+              <tr>
+                <th className="text-left py-2 font-medium">Call ID</th>
+                <th className="text-left py-2 font-medium">Duration</th>
+                <th className="text-left py-2 font-medium">CQI</th>
+                <th className="text-left py-2 font-medium">Status</th>
+                <th className="text-left py-2 font-medium">HIGH</th>
+                <th className="text-left py-2 font-medium">LOW</th>
+              </tr>
+            </thead>
+            <tbody>
+              {calls.map((c) => {
+                const tone = c.tag === "Clean" ? "green" : c.tag === "Non-Fatal" ? "sand" : "mauve";
+                const high = c.high ?? (c.tag === "Clean" ? c.obs : "—");
+                const low = c.low ?? (c.tag !== "Clean" ? c.obs : "—");
+                return (
+                  <tr key={c.id} className="border-t border-border align-top">
+                    <td className="py-2 font-mono">{c.id}</td>
+                    <td className="py-2 font-mono">{c.duration}</td>
+                    <td className="py-2 font-mono">{c.cqi}</td>
+                    <td className="py-2"><Badge tone={tone as any}>{c.tag}</Badge></td>
+                    <td className="py-2 text-acc-green leading-snug max-w-[220px]">{high}</td>
+                    <td className="py-2 text-acc-sand leading-snug max-w-[220px]">{low}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {/* AI Pattern Detection */}
+      <div className="rounded-md border border-acc-green/40 bg-acc-green/5 p-4">
+        <div className="text-[10.5px] uppercase tracking-[0.14em] text-acc-green font-medium mb-1.5">
+          🧠 AI Pattern Detection
+        </div>
+        <div className="text-[13.5px] text-foreground/90 leading-snug">
+          AI has analyzed <span className="font-mono text-acc-green">{callsSampled}</span> calls and detected:{" "}
+          <span className="text-foreground">{pattern}</span>
+        </div>
+      </div>
+
+      {/* Strengths + Improvements */}
+      <div className="grid md:grid-cols-2 gap-3">
+        <div className="rounded-md border border-acc-green/30 bg-acc-green/5 p-3">
+          <div className="text-[11px] uppercase tracking-wider text-acc-green mb-2">Strengths</div>
+          <ul className="text-[13px] space-y-1.5">
+            {strengths.map((s, i) => <li key={i} className="flex gap-2"><span className="text-acc-green">●</span>{s}</li>)}
+          </ul>
+        </div>
+        <div className="rounded-md border border-acc-sand/30 bg-acc-sand/5 p-3">
+          <div className="text-[11px] uppercase tracking-wider text-acc-sand mb-2">Improvements</div>
+          <ul className="text-[13px] space-y-1.5">
+            {improvements.map((s, i) => <li key={i} className="flex gap-2"><span className="text-acc-sand">●</span>{s}</li>)}
+          </ul>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={onOpenFeedback}
+          className="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3.5 py-2 text-[13px] hover:border-acc-blue/40"
+        >
+          <FileText className="size-4 text-acc-blue" /> View Full Feedback Sheet
+        </button>
+        <button
+          onClick={onOpenTraining}
+          className="inline-flex items-center gap-2 rounded-md border border-acc-green/40 bg-acc-green/10 px-3.5 py-2 text-[13px] text-acc-green hover:bg-acc-green/20"
+        >
+          <GraduationCap className="size-4" />
+          {roster.keyId === "anita" ? "No Training Plan — STAR Performer" : "View Training Plan"}
+        </button>
+      </div>
+    </>
+  );
+}
+
+// ---------- Rebuttals tab ----------
+function RebuttalsTab({ roster, keyAgent }: { roster: RosterAgent; keyAgent: Agent | null }) {
+  const rebuttals = keyAgent?.rebuttals;
+  const note = keyAgent?.rebuttalsNote;
+
+  if (!rebuttals && !note) {
+    return (
+      <div className="rounded-md border border-border bg-surface-2 p-4 text-[13px] text-text-secondary">
+        No personalized rebuttals queued for {roster.name}. The AI will surface scenario-specific scripts once a recurring gap is detected.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-md border border-acc-blue/30 bg-acc-blue/5 p-3">
+        <div className="text-[10.5px] uppercase tracking-[0.14em] text-acc-blue font-medium mb-1">Personalized for {roster.name}</div>
+        <div className="text-[12.5px] text-foreground/85 leading-snug">
+          Rebuttals below are generated from this agent's specific gap pattern, not generic library scripts.
+        </div>
+      </div>
+
+      {note && (
+        <div className="rounded-md border border-acc-green/30 bg-acc-green/5 p-4 text-[13.5px] leading-relaxed">
+          {note}
+        </div>
+      )}
+
+      {rebuttals?.map((r, i) => (
+        <div key={i} className="rounded-md border border-border bg-surface-2 overflow-hidden">
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-surface border-b border-border">
+            <Badge tone="blue">{r.badge}</Badge>
+            <div className="text-[12.5px] text-text-secondary">{r.scenario}</div>
+          </div>
+          <div className="p-4 space-y-2.5">
+            <div className="rounded-md border border-border bg-card p-3">
+              <div className="text-[10.5px] uppercase tracking-wider text-dim mb-1">Customer says</div>
+              <div className="text-[13px] italic">"{r.customer}"</div>
+            </div>
+            <div className="rounded-md border border-acc-green/30 bg-acc-green/5 p-3">
+              <div className="text-[10.5px] uppercase tracking-wider text-acc-green mb-1">Say this instead</div>
+              <div className="text-[13px] leading-snug">{r.response}</div>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
