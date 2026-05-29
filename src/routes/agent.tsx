@@ -7,6 +7,7 @@ import {
 import { X, FileText, GraduationCap, TrendingUp, Search, ChevronDown } from "lucide-react";
 import { Shell, Card, SectionTitle, Badge, CatBadge } from "@/components/silaris/Shell";
 import { useExecutionPanel } from "@/components/silaris/ExecutionPanel";
+import type { CopilotProps } from "@/components/silaris/Copilot";
 import { AGENTS, AGENT_ROSTER, type Agent, type RosterAgent, type TrainingStatus, type CapStatus, type AgentStatus } from "@/lib/silaris-data";
 
 export const Route = createFileRoute("/agent")({
