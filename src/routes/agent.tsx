@@ -41,7 +41,7 @@ function AgentView() {
         if (filter === "cap") return a.cap !== "None";
         return true;
       })
-      .sort((a, b) => b.cqi - a.cqi);
+      .sort((a, b) => a.rank - b.rank);
   }, [query, filter]);
 
   const visible = showAll ? filtered : filtered.slice(0, 20);
