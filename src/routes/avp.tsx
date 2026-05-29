@@ -84,6 +84,8 @@ function AVP() {
 }
 
 function Rec({ n, title, children }: { n: number; title: string; children: any }) {
+  const exec = useExecutionPanel();
+  const detail = typeof children === "string" ? children : String(children?.props?.children ?? "");
   return (
     <div className="rounded-md border border-acc-green/30 bg-acc-green/5 p-3">
       <div className="flex items-center gap-2">
@@ -92,8 +94,18 @@ function Rec({ n, title, children }: { n: number; title: string; children: any }
       </div>
       <div className="text-[12.5px] text-foreground/85 mt-1 leading-snug">{children}</div>
       <div className="mt-2 flex gap-2">
-        <button className="text-[11px] px-2.5 py-1 rounded bg-acc-green/15 text-acc-green border border-acc-green/30">Approve</button>
-        <button className="text-[11px] px-2.5 py-1 rounded bg-secondary border border-border">Review</button>
+        <button
+          onClick={() => exec.openFromSuggestion(title, detail, "Approve")}
+          className="text-[11px] px-2.5 py-1 rounded bg-acc-green/15 text-acc-green border border-acc-green/30 hover:bg-acc-green/25"
+        >
+          Approve
+        </button>
+        <button
+          onClick={() => exec.openFromSuggestion(title, detail, "Review")}
+          className="text-[11px] px-2.5 py-1 rounded bg-secondary border border-border hover:border-acc-amber/40"
+        >
+          Review
+        </button>
       </div>
     </div>
   );
