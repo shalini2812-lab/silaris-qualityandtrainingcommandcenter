@@ -3,6 +3,7 @@ import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell,
 } from "recharts";
 import { Shell, Card, SectionTitle, Kpi } from "@/components/silaris/Shell";
+import { useExecutionPanel } from "@/components/silaris/ExecutionPanel";
 import { PROCESS_COMPARE, PROCESS_TREND } from "@/lib/silaris-data";
 
 export const Route = createFileRoute("/avp")({
