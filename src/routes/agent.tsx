@@ -121,6 +121,7 @@ function AgentView() {
                 <th className="text-right py-2.5 px-2 font-medium">Complaints</th>
                 <th className="text-left py-2.5 px-2 font-medium">Training</th>
                 <th className="text-left py-2.5 px-2 font-medium">CAP</th>
+                <th className="text-left py-2.5 px-2 font-medium">Status</th>
               </tr>
             </thead>
             <tbody>
