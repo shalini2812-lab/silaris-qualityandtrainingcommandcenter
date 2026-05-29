@@ -7,7 +7,7 @@ import {
 import { X, FileText, GraduationCap, TrendingUp, Search, ChevronDown } from "lucide-react";
 import { Shell, Card, SectionTitle, Badge, CatBadge } from "@/components/silaris/Shell";
 import { useExecutionPanel } from "@/components/silaris/ExecutionPanel";
-import { AGENTS, AGENT_ROSTER, type Agent, type RosterAgent, type TrainingStatus, type CapStatus } from "@/lib/silaris-data";
+import { AGENTS, AGENT_ROSTER, type Agent, type RosterAgent, type TrainingStatus, type CapStatus, type AgentStatus } from "@/lib/silaris-data";
 
 export const Route = createFileRoute("/agent")({
   head: () => ({ meta: [{ title: "Agent · My Dashboard · Silaris" }] }),
@@ -41,7 +41,7 @@ function AgentView() {
         if (filter === "cap") return a.cap !== "None";
         return true;
       })
-      .sort((a, b) => b.cqi - a.cqi);
+      .sort((a, b) => a.rank - b.rank);
   }, [query, filter]);
 
   const visible = showAll ? filtered : filtered.slice(0, 20);
@@ -121,6 +121,7 @@ function AgentView() {
                 <th className="text-right py-2.5 px-2 font-medium">Complaints</th>
                 <th className="text-left py-2.5 px-2 font-medium">Training</th>
                 <th className="text-left py-2.5 px-2 font-medium">CAP</th>
+                <th className="text-left py-2.5 px-2 font-medium">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -202,8 +203,15 @@ function RosterRow({ a, displayIdx, onPick }: { a: RosterAgent; displayIdx: numb
       </td>
       <td className="py-2.5 px-2"><TrainingPill s={a.training} /></td>
       <td className="py-2.5 px-2"><CapPill s={a.cap} /></td>
+      <td className="py-2.5 px-2"><StatusPill s={a.status} /></td>
     </tr>
   );
+}
+
+function StatusPill({ s }: { s?: AgentStatus }) {
+  if (!s) return <span className="text-dim text-[12px]">—</span>;
+  const tone = s === "STAR" ? "green" : s === "COACH" ? "sand" : s === "WATCH" ? "amber" : "mauve";
+  return <Badge tone={tone as any}>{s}</Badge>;
 }
 
 function TrainingPill({ s }: { s: TrainingStatus }) {

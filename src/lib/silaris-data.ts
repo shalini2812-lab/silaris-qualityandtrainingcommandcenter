@@ -89,31 +89,31 @@ export const AGENTS: Agent[] = [
     name: "Priya Menon",
     empId: "SIL-2041",
     tl: "Pooja S.",
-    score: 76, out: 83, pct: 91.6, category: "A",
-    trend: [72, 74, 75, 76],
-    primaryGap: "Competition objection handling (Sec C: 6/12)",
-    secondaryGap: "Charges communication",
-    trainingStatus: "Active — Competition comparison module",
+    score: 66, out: 83, pct: 79.0, category: "C",
+    trend: [83, 81, 80, 79],
+    primaryGap: "Closing technique — weak urgency, no confirmed next step",
+    secondaryGap: "Competition objection handling (HDFC pivot)",
+    trainingStatus: "Active — Closing technique AI module (auto-delivered to desktop)",
     callsToday: 21, callsWeek: 87, capStatus: null,
-    dimensions: D([14, 13, 9, 11, 12, 13]),
+    dimensions: D([14, 13, 9, 9, 10, 11]),
     todaysCalls: [
       { id: "C-88412", duration: "06:24", cqi: 78, tag: "Clean", obs: "Strong opening, full T&C on time" },
       { id: "C-88419", duration: "04:11", cqi: 71, tag: "Non-Fatal", obs: "Fumbled on HDFC FMC comparison" },
-      { id: "C-88427", duration: "08:02", cqi: 80, tag: "Clean", obs: "Excellent rapport, closed Step-Up" },
+      { id: "C-88427", duration: "08:02", cqi: 80, tag: "Clean", obs: "Decent rapport, weak close — no callback set" },
       { id: "C-88433", duration: "05:48", cqi: 74, tag: "Non-Fatal", obs: "Charges not fully explained upfront" },
-      { id: "C-88441", duration: "07:15", cqi: 79, tag: "Clean", obs: "Clear summary + reconfirmation" },
+      { id: "C-88441", duration: "07:15", cqi: 79, tag: "Clean", obs: "Summary present, urgency missing" },
     ],
     feedback: {
-      aiPattern: "AI detected: in 4 of last 10 calls, customer mentioned HDFC and Priya did not pivot to our zero-allocation + reducing FMC advantage. Loses ~5pp on Section C.",
-      strengths: ["Warm, professional tone", "Strong opening per IRDA", "Excellent reconfirmation discipline"],
-      improvements: ["Pivot to feature-benefit when HDFC mentioned", "State FMC reduction (1.35% → 0.90%)"],
-      actionPlan: "Auto-deploy competition cheat sheet pre-call. 5-day STT monitoring; reassess Day 5.",
+      aiPattern: "AI detected: in 6 of last 10 calls, Priya did not set a concrete next-step / callback. Closing strength dropped from 12 → 9 over 4 weeks. Loses ~6pp on closing technique.",
+      strengths: ["Warm, professional tone", "Strong opening per IRDA", "Good reconfirmation discipline"],
+      improvements: ["Always anchor a specific callback time", "Pivot to FMC reduction when HDFC mentioned"],
+      actionPlan: "AI training module on closing technique auto-delivered to agent desktop. STT monitoring active for daily CQI scoring. If no improvement in 5 days, Trainer and TL will be notified with detailed call analysis.",
       remarks: [
         "Opening greeting clear, name + company stated",
         "Product features explained but rider depth shallow",
         "Lost ground when customer said 'HDFC zero charge bol rahe hain'",
-        "Recovered well on next-step commitment",
-        "Closing summary present, urgency moderate",
+        "Closing summary present but no confirmed callback in 6/10 calls",
+        "Urgency moderate, no anchor time committed",
         "Compliance disclosure within 30s in 9/10 calls",
       ],
     },
@@ -424,13 +424,20 @@ export const AGENTS: Agent[] = [
 ];
 
 // Team Leader view
-export const TL_AGENTS = [
-  { name: "Anita Sharma",  cqi: 94.0, cat: "A", trend: "up",   audited: 92, fatal: 0, nonFatal: 1,  train: "—",         cap: "—" },
-  { name: "Priya Menon",   cqi: 91.6, cat: "A", trend: "up",   audited: 87, fatal: 0, nonFatal: 4,  train: "Active",    cap: "—" },
-  { name: "Rahul Sharma",  cqi: 85.5, cat: "B", trend: "up",   audited: 74, fatal: 0, nonFatal: 6,  train: "Complete",  cap: "—" },
-  { name: "Sneha Joshi",   cqi: 81.9, cat: "B", trend: "up",   audited: 82, fatal: 0, nonFatal: 5,  train: "Complete",  cap: "—" },
-  { name: "Manish Verma",  cqi: 69.9, cat: "C", trend: "flat", audited: 78, fatal: 0, nonFatal: 12, train: "Escalated", cap: "CAP-1" },
-  { name: "Deepak Tiwari", cqi: 62.7, cat: "C", trend: "down", audited: 62, fatal: 3, nonFatal: 9,  train: "Mandatory", cap: "CAP-2" },
+export type AgentStatus = "STAR" | "COACH" | "WATCH" | "CAP";
+export const TL_AGENTS: {
+  name: string; cqi: number; cat: string; trend: string; audited: number;
+  fatal: number; nonFatal: number; train: string; cap: string; status?: AgentStatus;
+}[] = [
+  { name: "Anita Sharma",   cqi: 94.0, cat: "A", trend: "up",   audited: 92, fatal: 0, nonFatal: 1,  train: "—",         cap: "—",     status: "STAR" },
+  { name: "Rohit Bansal",   cqi: 93.4, cat: "A", trend: "up",   audited: 88, fatal: 0, nonFatal: 2,  train: "Complete",  cap: "—" },
+  { name: "Meera Iyer",     cqi: 92.8, cat: "A", trend: "up",   audited: 85, fatal: 0, nonFatal: 2,  train: "—",         cap: "—" },
+  { name: "Sanjay Pillai",  cqi: 92.1, cat: "A", trend: "flat", audited: 79, fatal: 0, nonFatal: 3,  train: "Complete",  cap: "—" },
+  { name: "Rahul Sharma",   cqi: 85.5, cat: "B", trend: "up",   audited: 74, fatal: 0, nonFatal: 6,  train: "Complete",  cap: "—" },
+  { name: "Sneha Joshi",    cqi: 81.9, cat: "B", trend: "up",   audited: 82, fatal: 0, nonFatal: 5,  train: "Complete",  cap: "—" },
+  { name: "Priya Menon",    cqi: 79.0, cat: "C", trend: "down", audited: 87, fatal: 0, nonFatal: 9,  train: "Active",    cap: "—",     status: "COACH" },
+  { name: "Manish Verma",   cqi: 69.9, cat: "C", trend: "flat", audited: 78, fatal: 0, nonFatal: 12, train: "Escalated", cap: "CAP-1", status: "WATCH" },
+  { name: "Deepak Tiwari",  cqi: 62.7, cat: "C", trend: "down", audited: 62, fatal: 3, nonFatal: 9,  train: "Mandatory", cap: "CAP-2", status: "CAP" },
 ];
 
 export const CRITICAL_PENDING = [
@@ -579,18 +586,19 @@ export interface RosterAgent {
   training: TrainingStatus;
   trainingNote?: string;
   cap: CapStatus;
+  status?: AgentStatus;
   keyId?: string; // links to AGENTS[].id
 }
 
 export const AGENT_ROSTER: RosterAgent[] = [
-  { rank: 1,  name: "Kavita Reddy",     empId: "SIL-2011", tl: "Pooja S.",  cqi: 95.2, cat: "A", spd: 1.9, quality: 93, complaints: 0, training: "None",            cap: "None" },
-  { rank: 2,  name: "Arjun Nair",       empId: "SIL-2018", tl: "Neha A.",   cqi: 94.6, cat: "A", spd: 1.8, quality: 92, complaints: 0, training: "None",            cap: "None" },
-  { rank: 3,  name: "Anita Sharma",     empId: "SIL-2003", tl: "Pooja S.",  cqi: 94.0, cat: "A", spd: 1.8, quality: 92, complaints: 0, training: "None",            cap: "None", keyId: "anita" },
+  { rank: 1,  name: "Anita Sharma",     empId: "SIL-2003", tl: "Pooja S.",  cqi: 95.8, cat: "A", spd: 1.9, quality: 94, complaints: 0, training: "None",            cap: "None", keyId: "anita", status: "STAR" },
+  { rank: 2,  name: "Kavita Reddy",     empId: "SIL-2011", tl: "Pooja S.",  cqi: 95.2, cat: "A", spd: 1.9, quality: 93, complaints: 0, training: "None",            cap: "None" },
+  { rank: 3,  name: "Arjun Nair",       empId: "SIL-2018", tl: "Neha A.",   cqi: 94.6, cat: "A", spd: 1.8, quality: 92, complaints: 0, training: "None",            cap: "None" },
   { rank: 4,  name: "Rohit Bansal",     empId: "SIL-2024", tl: "Kavita M.", cqi: 93.4, cat: "A", spd: 1.7, quality: 90, complaints: 0, training: "Completed",       trainingNote: "Rebuttal mastery", cap: "None" },
   { rank: 5,  name: "Meera Iyer",       empId: "SIL-2029", tl: "Neha A.",   cqi: 92.8, cat: "A", spd: 1.7, quality: 89, complaints: 0, training: "None",            cap: "None" },
   { rank: 6,  name: "Sanjay Pillai",    empId: "SIL-2034", tl: "Pooja S.",  cqi: 92.1, cat: "A", spd: 1.6, quality: 88, complaints: 0, training: "Completed",       trainingNote: "Step-Up rider", cap: "None" },
-  { rank: 7,  name: "Divya Kapoor",     empId: "SIL-2038", tl: "Kavita M.", cqi: 91.9, cat: "A", spd: 1.6, quality: 86, complaints: 0, training: "None",            cap: "None" },
-  { rank: 8,  name: "Priya Menon",      empId: "SIL-2041", tl: "Pooja S.",  cqi: 91.6, cat: "A", spd: 1.5, quality: 84, complaints: 0, training: "Active",          trainingNote: "Competition module", cap: "None", keyId: "priya" },
+  { rank: 7,  name: "Priya Menon",      empId: "SIL-2041", tl: "Pooja S.",  cqi: 79.0, cat: "C", spd: 1.5, quality: 72, complaints: 1, training: "Active",          trainingNote: "Closing technique — 5-day STT watch", cap: "None", keyId: "priya", status: "COACH" },
+  { rank: 8,  name: "Divya Kapoor",     empId: "SIL-2038", tl: "Kavita M.", cqi: 91.9, cat: "A", spd: 1.6, quality: 86, complaints: 0, training: "None",            cap: "None" },
   { rank: 9,  name: "Faisal Khan",      empId: "SIL-2046", tl: "Ramesh K.", cqi: 90.7, cat: "A", spd: 1.5, quality: 83, complaints: 0, training: "Completed",       trainingNote: "T&C timing", cap: "None" },
   { rank: 10, name: "Nikhil Joshi",     empId: "SIL-2051", tl: "Vikram J.", cqi: 88.4, cat: "B", spd: 1.4, quality: 82, complaints: 1, training: "Active",          trainingNote: "Charges clarity", cap: "None" },
   { rank: 11, name: "Aarti Deshmukh",   empId: "SIL-2060", tl: "Neha A.",   cqi: 86.9, cat: "B", spd: 1.3, quality: 80, complaints: 0, training: "Assessment Due",  cap: "None" },
@@ -600,7 +608,7 @@ export const AGENT_ROSTER: RosterAgent[] = [
   { rank: 15, name: "Sneha Joshi",      empId: "SIL-2089", tl: "Neha A.",   cqi: 81.9, cat: "B", spd: 1.1, quality: 75, complaints: 0, training: "Completed",       trainingNote: "Closing — 3-S", cap: "None", keyId: "sneha" },
   { rank: 16, name: "Tarun Mehta",      empId: "SIL-2094", tl: "Vikram J.", cqi: 78.6, cat: "C", spd: 1.0, quality: 70, complaints: 1, training: "Active",          trainingNote: "Product knowledge", cap: "None" },
   { rank: 17, name: "Geeta Singh",      empId: "SIL-2102", tl: "Suresh B.", cqi: 74.2, cat: "C", spd: 0.9, quality: 66, complaints: 2, training: "Assessment Due",  cap: "None" },
-  { rank: 18, name: "Manish Verma",     empId: "SIL-2055", tl: "Vikram J.", cqi: 69.9, cat: "C", spd: 0.8, quality: 62, complaints: 2, training: "Escalated",       trainingNote: "Product bootcamp", cap: "CAP-1", keyId: "manish" },
+  { rank: 18, name: "Manish Verma",     empId: "SIL-2055", tl: "Vikram J.", cqi: 69.9, cat: "C", spd: 0.8, quality: 62, complaints: 2, training: "Escalated",       trainingNote: "Product bootcamp", cap: "CAP-1", keyId: "manish", status: "WATCH" },
   { rank: 19, name: "Imran Sheikh",     empId: "SIL-2108", tl: "Suresh B.", cqi: 66.4, cat: "C", spd: 0.7, quality: 57, complaints: 2, training: "Escalated",       trainingNote: "Active listening", cap: "CAP-1" },
-  { rank: 20, name: "Deepak Tiwari",    empId: "SIL-2117", tl: "Suresh B.", cqi: 62.7, cat: "C", spd: 0.6, quality: 52, complaints: 3, training: "Active",          trainingNote: "Compliance refresher", cap: "CAP-2", keyId: "deepak" },
+  { rank: 20, name: "Deepak Tiwari",    empId: "SIL-2117", tl: "Suresh B.", cqi: 62.7, cat: "C", spd: 0.6, quality: 52, complaints: 3, training: "Active",          trainingNote: "Compliance refresher", cap: "CAP-2", keyId: "deepak", status: "CAP" },
 ];

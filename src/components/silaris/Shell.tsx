@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, BarChart3, Mic2 } from "lucide-react";
+import { LayoutDashboard, BarChart3, Mic2, MessagesSquare } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { Header, Footer } from "./Header";
 import { Copilot, type CopilotProps } from "./Copilot";
@@ -8,12 +8,14 @@ import { ExecutionPanelProvider } from "./ExecutionPanel";
 import { ProcessOverviewView } from "./views/ProcessOverviewView";
 import { CallAnalyticsView } from "./views/CallAnalyticsView";
 import { VocView } from "./views/VocView";
+import { ScenariosObjectionsView } from "./views/ScenariosObjectionsView";
 
-type TabKey = "overview" | "analytics" | "voc";
+type TabKey = "overview" | "analytics" | "scenarios" | "voc";
 
 const TABS: { key: TabKey; label: string; icon: any }[] = [
   { key: "overview", label: "Process Overview", icon: LayoutDashboard },
   { key: "analytics", label: "Call Analytics", icon: BarChart3 },
+  { key: "scenarios", label: "Scenarios & Objections", icon: MessagesSquare },
   { key: "voc", label: "Voice of Customer", icon: Mic2 },
 ];
 
@@ -73,8 +75,29 @@ export function Shell({
   const tab = useCurrentTab();
 
   let body: ReactNode = children;
+  let effectiveCopilot = copilot;
   if (!hideTabs) {
     if (tab === "analytics") body = <CallAnalyticsView />;
+    else if (tab === "scenarios") {
+      body = <ScenariosObjectionsView />;
+      effectiveCopilot = {
+        summary:
+          "Top rising scenario: Competition comparison — up 8% this month. AI has deployed updated HDFC counter-scripts to 34 agents.",
+        working: [
+          "WhatsApp deflection scenario captured — 98 calls flagged",
+          "'Money issue' objections trending down 12% MoM",
+          "Updated HDFC counter-script live on 34 agent desktops",
+        ],
+        attention: [
+          "Competition comparison rising — +8% this month",
+          "WhatsApp send-and-go pattern rising — confirm callback discipline",
+        ],
+        suggestions: [
+          { title: "Push refreshed HDFC battle card to all Cat B agents", detail: "Auto-deliver pre-shift; covers FMC reduction + admin refund + 22 fund options." },
+          { title: "Add WhatsApp callback drill to weekly huddle", detail: "Mandatory callback time anchor — TLs to assess on 5 calls per agent this week." },
+        ],
+      };
+    }
     else if (tab === "voc") body = <VocView />;
     // overview => children (role's default dashboard)
   }
@@ -91,14 +114,14 @@ export function Shell({
           </main>
           <Footer />
         </div>
-        <Copilot {...copilot} />
+        <Copilot {...effectiveCopilot} />
       </div>
     </ExecutionPanelProvider>
   );
 }
 
 // Re-export views for convenience
-export { ProcessOverviewView, CallAnalyticsView, VocView };
+export { ProcessOverviewView, CallAnalyticsView, ScenariosObjectionsView, VocView };
 
 // Reusable UI
 export function Card({
