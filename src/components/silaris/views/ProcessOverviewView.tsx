@@ -1,5 +1,5 @@
 import {
-  Bar, ComposedChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  Bar, ComposedChart, Line, LineChart, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, CartesianGrid,
 } from "recharts";
 import { Card, Kpi, SectionTitle, Badge } from "@/components/silaris/Shell";
@@ -30,6 +30,100 @@ export function ProcessOverviewView({ kicker = "Home" }: { kicker?: string }) {
         <Kpi label="Fatal Error Rate" value="0.21%" sub="4 of 1,895 calls · ▼ from 0.4%" badge={{ text: "Improving", tone: "green" }} />
         <Kpi label="Training Effectiveness" value="72%" sub="Trained agents improved in 5 days" badge={{ text: "On Track", tone: "green" }} />
         <Kpi label="CAP Status" value="4" sub="3 on CAP-1 · 1 on CAP-2 · 0 on CAP-3" badge={{ text: "Monitoring", tone: "amber" }} />
+      </div>
+
+      {/* What AI Did This Week */}
+      <section
+        className="mt-6 rounded-[10px] border border-acc-green/40 bg-card p-5 relative"
+        style={{ boxShadow: "0 0 0 1px rgba(52,211,153,0.08), 0 8px 32px -12px rgba(52,211,153,0.25)" }}
+      >
+        <header className="flex items-center gap-2 mb-4">
+          <span className="text-[18px]" aria-hidden>🧠</span>
+          <h3 className="text-[16px] font-semibold tracking-tight">What AI Did This Week</h3>
+          <span className="ml-auto text-[10.5px] uppercase tracking-[0.12em] text-acc-green/80">Autonomous actions · last 7 days</span>
+        </header>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {[
+            { v: "34 agents", d: "received training modules" },
+            { v: "8 scripts", d: "competition rebuttals deployed" },
+            { v: "12 agents", d: "moved Red → Yellow zone" },
+            { v: "142 missed sales", d: "opportunities flagged" },
+            { v: "3 compliance", d: "refreshers triggered" },
+            { v: "Net CQI", d: "▲ 1.8pp improvement" },
+          ].map((m) => (
+            <div key={m.v} className="rounded-md border border-border bg-surface-2/60 p-3">
+              <div className="font-mono text-acc-green text-[20px] leading-tight">{m.v}</div>
+              <div className="text-[12px] text-text-secondary mt-1">{m.d}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Quality Metrics + Conversion + Trend */}
+      <div className="mt-6 grid grid-cols-1 xl:grid-cols-3 gap-4">
+        <Card title="Call Quality Metrics" className="xl:col-span-1">
+          <div className="grid grid-cols-2 gap-3">
+            <MetricBox label="Script Adherence" value="76.4%" tone="green" sub="Target ≥ 75%" />
+            <MetricBox label="Dead Air (Avg)" value="4.2s" tone="green" sub="Silence after customer question" />
+            <MetricBox label="Frustration Score" value="3.9%" tone="mauve" sub="187 calls with customer frustration" />
+            <MetricBox label="Missed Sales" value="142" tone="amber" sub="Agent didn't attempt retention" />
+          </div>
+        </Card>
+
+        <Card title="Conversion by Channel">
+          <div className="grid grid-cols-3 gap-3 mt-1">
+            <ChannelBox label="Human" value="1,203" tone="green" />
+            <ChannelBox label="AI Voice" value="312" tone="blue" />
+            <ChannelBox label="WhatsApp" value="487" tone="sand" />
+          </div>
+          <div className="mt-4 text-[11.5px] text-dim">
+            Total conversions: <span className="font-mono text-foreground">2,002</span> · WoW <span className="text-acc-green">▲ 6.1%</span>
+          </div>
+        </Card>
+
+        <Card title="Process CQI — 4 Week Trend">
+          <div className="h-[180px]">
+            <ResponsiveContainer>
+              <LineChart data={[
+                { w: "Week 1", v: 83.5 },
+                { w: "Week 2", v: 84.8 },
+                { w: "Week 3", v: 86.2 },
+                { w: "Week 4", v: 87.1 },
+              ]} margin={{ top: 10, right: 10, bottom: 5, left: -10 }}>
+                <CartesianGrid stroke="#1c2940" vertical={false} />
+                <XAxis dataKey="w" stroke="#94a3b8" tick={{ fontSize: 11 }} />
+                <YAxis domain={[82, 88]} stroke="#94a3b8" tick={{ fontSize: 11 }} unit="%" />
+                <Tooltip contentStyle={{ background: "#111827", border: "1px solid #1c2940", borderRadius: 8, fontSize: 12 }} />
+                <Line type="monotone" dataKey="v" stroke="#34d399" strokeWidth={2.5} dot={{ r: 4, fill: "#34d399" }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-2 text-[12px] text-acc-green">▲ +3.6 pp over 4 weeks</div>
+        </Card>
+      </div>
+
+      {/* Missed Sales Breakdown */}
+      <div className="mt-6">
+        <Card title="Missed Sales Opportunities">
+          <div className="text-[12px] text-text-secondary mb-4">142 opportunities identified · last 7 days</div>
+          <div className="space-y-3">
+            {[
+              { label: "Didn't attempt retention on 'sochta hoon'", pct: 38 },
+              { label: "Didn't offer discount / benefit", pct: 27 },
+              { label: "Didn't set callback after interest shown", pct: 20 },
+              { label: "Weak closing — no urgency created", pct: 15 },
+            ].map((m) => (
+              <div key={m.label} className="flex items-center gap-3 text-[12.5px]">
+                <div className="w-[280px] text-foreground/90 truncate">{m.label}</div>
+                <div className="flex-1 h-2.5 rounded bg-surface-2 overflow-hidden">
+                  <div className="h-full" style={{ width: `${m.pct * 2.4}%`, background: "#d4a574" }} />
+                </div>
+                <div className="font-mono w-12 text-right text-text-secondary">{m.pct}%</div>
+                <div className="font-mono w-10 text-right text-dim">{Math.round((m.pct / 100) * 142)}</div>
+              </div>
+            ))}
+          </div>
+        </Card>
       </div>
 
       <div className="mt-6 grid grid-cols-1 xl:grid-cols-3 gap-4">
@@ -171,6 +265,35 @@ function SentimentDonut({ data, label }: { data: { name: string; value: number; 
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function MetricBox({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone: "green" | "amber" | "mauve" | "blue" | "sand" }) {
+  const color =
+    tone === "green" ? "text-acc-green border-acc-green/30"
+    : tone === "amber" ? "text-acc-sand border-acc-sand/30"
+    : tone === "mauve" ? "text-acc-mauve border-acc-mauve/30"
+    : tone === "blue" ? "text-acc-blue border-acc-blue/30"
+    : "text-acc-sand border-acc-sand/30";
+  return (
+    <div className={`rounded-md border bg-surface-2/60 p-3 ${color.split(" ")[1]}`}>
+      <div className="text-[10.5px] uppercase tracking-wider text-dim font-medium">{label}</div>
+      <div className={`mt-1 font-mono text-[20px] ${color.split(" ")[0]}`}>{value}</div>
+      {sub && <div className="mt-1 text-[11px] text-text-secondary leading-tight">{sub}</div>}
+    </div>
+  );
+}
+
+function ChannelBox({ label, value, tone }: { label: string; value: string; tone: "green" | "blue" | "sand" }) {
+  const color =
+    tone === "green" ? "text-acc-green border-acc-green/30"
+    : tone === "blue" ? "text-acc-blue border-acc-blue/30"
+    : "text-acc-sand border-acc-sand/30";
+  return (
+    <div className={`rounded-md border bg-surface-2/60 p-3 text-center ${color.split(" ")[1]}`}>
+      <div className={`font-mono text-[22px] leading-tight ${color.split(" ")[0]}`}>{value}</div>
+      <div className="text-[11px] text-text-secondary uppercase tracking-wider mt-1">{label}</div>
     </div>
   );
 }
