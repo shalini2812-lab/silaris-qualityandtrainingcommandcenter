@@ -62,7 +62,11 @@ export function AgentTrainingTable() {
                 <tr
                   key={r.name}
                   className="border-t border-border hover:bg-surface-2 cursor-pointer"
-                  onClick={() => alert(`Open training lifecycle for ${r.name}\nModule: ${r.module}\nGap: ${r.gap}\nHours in current stage: ${r.hoursInStage}`)}
+                  onClick={() => exec.openFromSuggestion(
+                    `Training lifecycle · ${r.name}`,
+                    `Module: ${r.module} · Gap: ${r.gap} · ${r.hoursInStage}h in current stage`,
+                    "Approve",
+                  )}
                 >
                   <td className="py-2.5 font-medium">{r.name}</td>
                   <td className="py-2.5 text-text-secondary">{r.tl}</td>
