@@ -73,6 +73,11 @@ export function Shell({
   hideTabs?: boolean;
 }) {
   const tab = useCurrentTab();
+  const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const isSpecialty =
+    pathname.startsWith("/agent") ||
+    pathname.startsWith("/competition") ||
+    pathname.startsWith("/training");
 
   let body: ReactNode = children;
   let effectiveCopilot = copilot;
@@ -99,7 +104,9 @@ export function Shell({
       };
     }
     else if (tab === "voc") body = <VocView />;
-    // overview => children (role's default dashboard)
+    else if (tab === "overview" && !isSpecialty) {
+      effectiveCopilot = PROCESS_OVERVIEW_COPILOT;
+    }
   }
 
   return (
