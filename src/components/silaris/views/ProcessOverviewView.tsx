@@ -13,6 +13,35 @@ const RISK_COLOR: Record<string, string> = {
   "Zero Tolerance": "#a78baf",
 };
 
+function MetricBox({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone: "green" | "amber" | "mauve" | "blue" | "sand" }) {
+  const color =
+    tone === "green" ? "text-acc-green border-acc-green/30"
+    : tone === "amber" ? "text-acc-sand border-acc-sand/30"
+    : tone === "mauve" ? "text-acc-mauve border-acc-mauve/30"
+    : tone === "blue" ? "text-acc-blue border-acc-blue/30"
+    : "text-acc-sand border-acc-sand/30";
+  return (
+    <div className={`rounded-md border bg-surface-2/60 p-3 ${color.split(" ")[1]}`}>
+      <div className="text-[10.5px] uppercase tracking-wider text-dim font-medium">{label}</div>
+      <div className={`mt-1 font-mono text-[20px] ${color.split(" ")[0]}`}>{value}</div>
+      {sub && <div className="mt-1 text-[11px] text-text-secondary leading-tight">{sub}</div>}
+    </div>
+  );
+}
+
+function ChannelBox({ label, value, tone }: { label: string; value: string; tone: "green" | "blue" | "sand" }) {
+  const color =
+    tone === "green" ? "text-acc-green border-acc-green/30"
+    : tone === "blue" ? "text-acc-blue border-acc-blue/30"
+    : "text-acc-sand border-acc-sand/30";
+  return (
+    <div className={`rounded-md border bg-surface-2/60 p-3 text-center ${color.split(" ")[1]}`}>
+      <div className={`font-mono text-[22px] leading-tight ${color.split(" ")[0]}`}>{value}</div>
+      <div className="text-[11px] text-text-secondary uppercase tracking-wider mt-1">{label}</div>
+    </div>
+  );
+}
+
 export function ProcessOverviewView({ kicker = "Home" }: { kicker?: string }) {
   let cum = 0;
   const total = TOP_DEFECTS.reduce((s, d) => s + d.pct, 0);
