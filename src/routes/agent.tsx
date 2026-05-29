@@ -47,28 +47,10 @@ function AgentView() {
   const visible = showAll ? filtered : filtered.slice(0, 20);
   const selected = selectedRank != null ? AGENT_ROSTER.find((a) => a.rank === selectedRank) ?? null : null;
   const keyAgent: Agent | null = selected?.keyId ? AGENTS.find((a) => a.id === selected.keyId) ?? null : null;
+  const copilot = buildAgentCopilot(keyAgent, selected);
 
   return (
-    <Shell
-      copilot={{
-        summary: "Roster live — 20 agents · 6 in training · 3 under CAP. Click any agent to inspect.",
-        working: [
-          "9 agents in Category A (45% of roster)",
-          "Anita Sharma — 94% reference-quality coach",
-          "Sneha Joshi closing module +5 pts in 3 wks",
-        ],
-        attention: [
-          "Deepak Tiwari — CAP-2 fatal flagged",
-          "Manish Verma — escalated to classroom",
-          "2 assessments due today (Rahul, Aarti)",
-        ],
-        suggestions: [
-          { title: "Deploy competition cheat sheet to 8 agents", detail: "HDFC pivot script — auto-deliver pre-shift to all Cat B handling Savings." },
-          { title: "Reassign 120 leads off Deepak Tiwari", detail: "Protect lead quality while CAP-2 is active — route to 3 Cat A agents." },
-          { title: "Schedule classroom for Manish Verma", detail: "AI coaching exhausted — escalate to Trainer + TL shadowing for 2 weeks." },
-        ],
-      }}
-    >
+    <Shell copilot={copilot}>
       <SectionTitle kicker="Operations · Agent">My Dashboard — Agent Roster</SectionTitle>
 
       {/* Search + filter bar */}
