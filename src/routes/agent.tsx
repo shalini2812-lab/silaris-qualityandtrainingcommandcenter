@@ -25,7 +25,6 @@ const FILTERS: { key: FilterKey; label: string }[] = [
   { key: "cap", label: "Under CAP" },
 ];
 
-import type { CopilotProps } from "@/components/silaris/Copilot";
 
 const DEFAULT_AGENT_COPILOT: CopilotProps = {
   summary: "Roster live — 20 agents · 6 in training · 3 under CAP. Click any agent to inspect.",
