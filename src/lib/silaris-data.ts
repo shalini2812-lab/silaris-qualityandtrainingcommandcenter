@@ -586,6 +586,7 @@ export interface RosterAgent {
   training: TrainingStatus;
   trainingNote?: string;
   cap: CapStatus;
+  status?: AgentStatus;
   keyId?: string; // links to AGENTS[].id
 }
 
