@@ -1,5 +1,5 @@
 import {
-  Bar, ComposedChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  Bar, ComposedChart, Line, LineChart, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, CartesianGrid,
 } from "recharts";
 import { Card, Kpi, SectionTitle, Badge } from "@/components/silaris/Shell";
