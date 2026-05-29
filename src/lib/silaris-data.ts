@@ -420,9 +420,6 @@ export const AGENTS: Agent[] = [
       strengths: ["Big improvement curve — C to B in 4 weeks", "Friendly, builds trust", "Listens actively"],
       improvements: ["Always summarize 3 benefits before closing", "Ask for explicit commitment ('Shall we proceed today?')"],
       actionPlan: "Module completed. STT monitoring for 5 days; reassess Day 5. Target: 71+ score, Cat A by month-end.",
-      strengths: ["Big improvement curve — C to B in 3 weeks", "Friendly, builds trust", "Listens actively"],
-      improvements: ["Always summarize 3 benefits before closing", "Ask for explicit commitment ('Shall we proceed today?')"],
-      actionPlan: "Module completed. STT monitoring for 5 days; reassess Day 5. Target: 71+ score, Cat A by month-end.",
       remarks: [
         "Communication clear and warm",
         "Product knowledge improving",
