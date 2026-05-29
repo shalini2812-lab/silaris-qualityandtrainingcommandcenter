@@ -152,14 +152,14 @@ export const TRAINING_COPILOT = {
   summary:
     "8 new TNA requests this week. 5 agents escalated — AI coaching didn't work. Schedule human-led sessions for product knowledge gaps.",
   working: [
+    "12 agents completed training with avg improvement +6.2 points",
     "72% of trained agents improved within 5 days",
-    "Avg lift +6.2 pp across AI cohorts",
     "Sneha Joshi promoted Cat C → Cat B",
   ],
   attention: [
-    "5 agents escalated — AI coaching exhausted",
+    "5 agents escalated — AI coaching ineffective",
+    "8 assessments overdue > 48 hours",
     "Product knowledge cohort regressed −1 pp",
-    "Vikas Reddy stuck in Assessment >48h",
   ],
   suggestions: [
     { title: "Schedule human-led product knowledge clinic", detail: "6 agents · 2-week intensive with Anita as peer coach" },
