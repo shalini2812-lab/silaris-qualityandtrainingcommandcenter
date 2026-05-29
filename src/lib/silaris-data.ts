@@ -627,20 +627,24 @@ export const PARAMETER_SCORES = [
 ];
 
 // Training screens
-export const TRAINING_PIPELINE = [
-  { stage: "TNA Identified", count: 8 },
-  { stage: "Plan Created",   count: 11 },
-  { stage: "Delivered",      count: 23 },
-  { stage: "Assessment",     count: 14 },
-  { stage: "Completed",      count: 34 },
+export const TRAINING_PIPELINE: { stage: string; count: string; tone: "blue" | "green" | "amber" | "mixed" }[] = [
+  { stage: "Detected",   count: "34", tone: "blue" },
+  { stage: "Generated",  count: "28", tone: "blue" },
+  { stage: "Delivered",  count: "23", tone: "green" },
+  { stage: "Opened",     count: "21", tone: "green" },
+  { stage: "Assessment", count: "8",  tone: "amber" },
+  { stage: "Monitoring", count: "15", tone: "green" },
+  { stage: "Outcome",    count: "12 ✓  5 ⚠", tone: "mixed" },
 ];
 
 export const TRAINING_AGENTS = [
-  { name: "Priya Menon",   tl: "Pooja S.",  gap: "Competition handling", type: "AI Module", status: "Active",    pre: 71, post: 76, change: +5 },
-  { name: "Rahul Sharma",  tl: "Ramesh K.", gap: "T&C timing",           type: "AI Module", status: "Complete",  pre: 68, post: 71, change: +3 },
-  { name: "Sneha Joshi",   tl: "Neha A.",   gap: "Closing technique",    type: "AI Module", status: "Complete",  pre: 63, post: 68, change: +5 },
-  { name: "Manish Verma",  tl: "Vikram J.", gap: "Product knowledge",    type: "Classroom", status: "Escalated", pre: 60, post: 58, change: -2 },
-  { name: "Deepak Tiwari", tl: "Suresh B.", gap: "Compliance (fatal)",   type: "Mandatory", status: "Active",    pre: 58, post: 52, change: -6 },
+  { name: "Priya Menon",   tl: "Pooja S.",  gap: "Competition handling", module: "HDFC Counter-Script v3",   type: "AI Module", status: "Active",    pre: 71, post: 76, change: +5, hoursInStage: 22 },
+  { name: "Rahul Sharma",  tl: "Ramesh K.", gap: "T&C disclosure timing", module: "T&C Timing Micro-Module", type: "AI Module", status: "Complete",  pre: 68, post: 71, change: +3, hoursInStage: 12 },
+  { name: "Sneha Joshi",   tl: "Neha A.",   gap: "Closing technique",    module: "Urgency Close Drill",       type: "AI Module", status: "Complete",  pre: 63, post: 68, change: +5, hoursInStage: 10 },
+  { name: "Anita Sharma",  tl: "Pooja S.",  gap: "Peer-coach refresh",   module: "Advanced Objection Pack",   type: "AI Module", status: "Active",    pre: 88, post: 91, change: +3, hoursInStage: 18 },
+  { name: "Vikas Reddy",   tl: "Neha A.",   gap: "Active listening",     module: "Listening Reps 2.0",        type: "AI Module", status: "Active",    pre: 72, post: 74, change: +2, hoursInStage: 56 },
+  { name: "Manish Verma",  tl: "Vikram J.", gap: "Product knowledge",    module: "Rider Deep-Dive (HUMAN)",   type: "Classroom", status: "Escalated", pre: 60, post: 58, change: -2, hoursInStage: 72 },
+  { name: "Deepak Tiwari", tl: "Suresh B.", gap: "Compliance (fatal)",   module: "IRDA Mandatory Refresher",  type: "Mandatory", status: "Active",    pre: 58, post: 52, change: -6, hoursInStage: 60 },
 ];
 
 export const TRAIN_EFFECTIVENESS = [
