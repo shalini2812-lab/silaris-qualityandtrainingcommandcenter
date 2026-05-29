@@ -55,7 +55,9 @@ export interface Agent {
   callsWeek: number;
   capStatus?: "CAP-1" | "CAP-2" | "CAP-3" | null;
   dimensions: { code: string; name: string; score: number; max: number }[];
-  todaysCalls: { id: string; duration: string; cqi: number; tag: "Clean" | "Non-Fatal" | "Fatal"; obs: string }[];
+  todaysCalls: { id: string; duration: string; cqi: number; tag: "Clean" | "Non-Fatal" | "Fatal"; obs: string; high?: string; low?: string }[];
+  rebuttals?: { badge: string; scenario: string; customer: string; response: string }[];
+  rebuttalsNote?: string;
   feedback: {
     aiPattern: string;
     strengths: string[];
