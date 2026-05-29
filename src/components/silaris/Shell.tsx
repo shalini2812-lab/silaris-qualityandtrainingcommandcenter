@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, BarChart3, Mic2 } from "lucide-react";
+import { LayoutDashboard, BarChart3, Mic2, MessagesSquare } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { Header, Footer } from "./Header";
 import { Copilot, type CopilotProps } from "./Copilot";
@@ -8,12 +8,14 @@ import { ExecutionPanelProvider } from "./ExecutionPanel";
 import { ProcessOverviewView } from "./views/ProcessOverviewView";
 import { CallAnalyticsView } from "./views/CallAnalyticsView";
 import { VocView } from "./views/VocView";
+import { ScenariosObjectionsView } from "./views/ScenariosObjectionsView";
 
-type TabKey = "overview" | "analytics" | "voc";
+type TabKey = "overview" | "analytics" | "scenarios" | "voc";
 
 const TABS: { key: TabKey; label: string; icon: any }[] = [
   { key: "overview", label: "Process Overview", icon: LayoutDashboard },
   { key: "analytics", label: "Call Analytics", icon: BarChart3 },
+  { key: "scenarios", label: "Scenarios & Objections", icon: MessagesSquare },
   { key: "voc", label: "Voice of Customer", icon: Mic2 },
 ];
 
