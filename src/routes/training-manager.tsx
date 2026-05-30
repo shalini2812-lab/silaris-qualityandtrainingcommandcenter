@@ -36,6 +36,9 @@ function TM() {
 
       <TrainingPipeline />
 
+      <AiVsHumanTraining />
+
+
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-5">
         <div className="xl:col-span-2">
           <AgentTrainingTable />
