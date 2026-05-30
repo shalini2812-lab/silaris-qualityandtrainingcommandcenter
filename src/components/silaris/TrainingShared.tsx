@@ -38,42 +38,80 @@ export function TrainingPipeline() {
 
 export function AgentTrainingTable() {
   const exec = useExecutionPanel();
+  const totals = TRAINING_AGENTS.reduce(
+    (a, r) => {
+      a.read += r.read ? 1 : 0;
+      a.assessed += r.assessment !== null ? 1 : 0;
+      a.passed += r.assessment !== null && r.assessment >= 85 ? 1 : 0;
+      a.improved += r.change > 0 ? 1 : 0;
+      return a;
+    },
+    { read: 0, assessed: 0, passed: 0, improved: 0 }
+  );
+  const n = TRAINING_AGENTS.length;
   return (
     <Card title="Agents Currently in Training">
+      <div className="grid grid-cols-4 gap-2 mb-3">
+        {[
+          { k: "Read", v: `${totals.read}/${n}`, tone: "text-acc-green" },
+          { k: "Assessment taken", v: `${totals.assessed}/${n}`, tone: "text-acc-blue" },
+          { k: "Passed (≥85%)", v: `${totals.passed}/${n}`, tone: "text-acc-green" },
+          { k: "Improved (Δ>0)", v: `${totals.improved}/${n}`, tone: "text-acc-green" },
+        ].map((t) => (
+          <div key={t.k} className="rounded-md border border-border bg-surface-2 px-3 py-2">
+            <div className="text-[10px] uppercase tracking-wider text-dim">{t.k}</div>
+            <div className={`font-mono text-[18px] mt-0.5 ${t.tone}`}>{t.v}</div>
+          </div>
+        ))}
+      </div>
       <div className="overflow-x-auto">
         <table className="w-full text-[13px]">
           <thead className="text-dim text-[11px] uppercase tracking-wider">
             <tr>
               <th className="text-left py-2 font-medium">Agent</th>
               <th className="text-left py-2 font-medium">TL</th>
-              <th className="text-left py-2 font-medium">Gap Identified</th>
               <th className="text-left py-2 font-medium">Module</th>
               <th className="text-left py-2 font-medium">Status</th>
+              <th className="text-center py-2 font-medium">Read</th>
+              <th className="text-right py-2 font-medium">Assess.</th>
               <th className="text-right py-2 font-medium">Pre</th>
               <th className="text-right py-2 font-medium">Post</th>
               <th className="text-right py-2 font-medium">Δ</th>
-              <th className="text-left py-2 font-medium pl-3">Overdue?</th>
+              <th className="text-left py-2 font-medium pl-3">Flag</th>
             </tr>
           </thead>
           <tbody>
             {TRAINING_AGENTS.map((r) => {
               const overdue = r.hoursInStage > 48 && r.status !== "Complete";
+              const assessTone =
+                r.assessment === null ? "text-dim" :
+                r.assessment >= 85 ? "text-acc-green" :
+                r.assessment >= 70 ? "text-acc-amber" : "text-acc-mauve";
               return (
                 <tr
                   key={r.name}
                   className="border-t border-border hover:bg-surface-2 cursor-pointer"
                   onClick={() => exec.openFromSuggestion(
                     `Training lifecycle · ${r.name}`,
-                    `Module: ${r.module} · Gap: ${r.gap} · ${r.hoursInStage}h in current stage`,
+                    `Module: ${r.module} · Gap: ${r.gap} · Read: ${r.read ? `yes (${r.readAt})` : "no"} · Assessment: ${r.assessment ?? "not taken"}${r.assessment ? "%" : ""} (${r.assessmentAttempts} attempt${r.assessmentAttempts === 1 ? "" : "s"}) · Δ ${r.change >= 0 ? "+" : ""}${r.change}`,
                     "Approve",
                   )}
                 >
                   <td className="py-2.5 font-medium">{r.name}</td>
                   <td className="py-2.5 text-text-secondary">{r.tl}</td>
-                  <td className="py-2.5 text-text-secondary">{r.gap}</td>
                   <td className="py-2.5 text-text-secondary">{r.module}</td>
                   <td className="py-2.5">
                     <Badge tone={r.status === "Complete" ? "green" : r.status === "Escalated" ? "mauve" : "amber"}>{r.status}</Badge>
+                  </td>
+                  <td className="py-2.5 text-center">
+                    {r.read
+                      ? <span className="text-acc-green" title={`Read ${r.readAt}`}>✓</span>
+                      : <span className="text-acc-mauve" title="Not opened">✗</span>}
+                  </td>
+                  <td className={`py-2.5 text-right font-mono ${assessTone}`}>
+                    {r.assessment === null
+                      ? "—"
+                      : <>{r.assessment}%{r.assessmentAttempts > 1 && <span className="text-dim text-[11px]"> ×{r.assessmentAttempts}</span>}</>}
                   </td>
                   <td className="py-2.5 text-right font-mono">{r.pre}</td>
                   <td className="py-2.5 text-right font-mono">{r.post}</td>
@@ -81,7 +119,13 @@ export function AgentTrainingTable() {
                     {r.change >= 0 ? "+" : ""}{r.change}
                   </td>
                   <td className="py-2.5 pl-3">
-                    {overdue ? <Badge tone="amber">48h+</Badge> : <span className="text-dim text-[12px]">—</span>}
+                    {!r.read
+                      ? <Badge tone="mauve">Unopened</Badge>
+                      : r.assessment === null
+                        ? <Badge tone="amber">Assess. due</Badge>
+                        : overdue
+                          ? <Badge tone="amber">48h+</Badge>
+                          : <span className="text-dim text-[12px]">—</span>}
                   </td>
                 </tr>
               );
