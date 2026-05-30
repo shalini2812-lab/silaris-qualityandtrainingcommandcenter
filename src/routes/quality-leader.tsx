@@ -40,6 +40,7 @@ function QLView() {
           { title: "Open calibration session", detail: "Suresh B. team + 2 QAs · variance >5%" },
           { title: "Promote refreshed objection script", detail: "Apply to 34 Cat-B agents process-wide" },
         ],
+        extra: <CqiQuickReference />,
       }}
     >
       <SectionTitle kicker="Quality">Quality Leader</SectionTitle>
