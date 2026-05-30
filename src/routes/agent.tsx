@@ -1104,10 +1104,7 @@ function FeedbackSheet({ roster, keyAgent }: { roster: RosterAgent; keyAgent: Ag
       <div className="rounded-md border border-acc-green/30 bg-acc-green/[0.06] p-4">
         <div className="text-[11px] uppercase tracking-wider text-acc-green mb-2">AI Action Plan</div>
         <ol className="text-[13px] space-y-1.5 list-decimal pl-5">
-          <li>{actionPlan}</li>
-          <li>STT live-monitors every call for the next 5 working days; deviation triggers real-time nudge.</li>
-          <li>Day 5 assessment auto-scheduled — pre vs post CQI delta reported to TL ({roster.tl}) and QA Manager.</li>
-          <li>If no improvement after 5 days, escalate to classroom training with Trainer + TL shadowing.</li>
+          {actionPlan.map((step, i) => <li key={i}>{step}</li>)}
         </ol>
       </div>
 
