@@ -24,6 +24,7 @@ export function Copilot({ working, attention, suggestions, summary, extra }: Cop
       </div>
 
       <div className="overflow-y-auto p-4 space-y-4 flex-1">
+        {extra}
         {summary && (
           <div className="text-[12.5px] text-foreground/85 leading-relaxed bg-surface border border-border rounded-md p-3">
             {summary}
