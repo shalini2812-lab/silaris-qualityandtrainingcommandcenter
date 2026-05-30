@@ -263,9 +263,14 @@ function AgentView() {
       )}
 
       {modal && selected && (
-        <Modal onClose={() => setModal(null)} title={modal === "feedback" ? "CQI Feedback Sheet" : "Personalized Training Plan"}>
+        <Modal
+          onClose={() => setModal(null)}
+          title={modal === "feedback" ? "CALL QUALITY MONITORING SHEET" : "Personalized Training Plan"}
+          subtitle={modal === "feedback" ? "Outbound Insurance Sales · BPO Operations · AI-Enhanced Review" : undefined}
+          wide={modal === "feedback"}
+        >
           {modal === "feedback"
-            ? (keyAgent ? <FeedbackSheet a={keyAgent} /> : <GenericFeedback r={selected} />)
+            ? <FeedbackSheet roster={selected} keyAgent={keyAgent} />
             : (keyAgent ? <TrainingPlan a={keyAgent} /> : <GenericTraining r={selected} />)}
         </Modal>
       )}
