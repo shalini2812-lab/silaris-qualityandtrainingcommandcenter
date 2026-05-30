@@ -765,70 +765,255 @@ function GenericTraining({ r }: { r: RosterAgent }) {
   );
 }
 
-function FeedbackSheet({ a }: { a: Agent }) {
+// ============================================================
+// Full Call Quality Monitoring Sheet
+// Works for both rich keyAgent records and synthetic roster rows.
+// ============================================================
+
+type SheetParam = { n: number; name: string; max: number; score: number; remarks: string };
+type SheetSection = { letter: string; title: string; max: number; params: SheetParam[] };
+
+const SECTION_TEMPLATE: { letter: string; title: string; max: number; params: { name: string; max: number; weight: number }[] }[] = [
+  { letter: "A", title: "Call Opening & Greeting", max: 10, params: [
+      { name: "Self-intro + IRDA disclosure within 10s", max: 6, weight: 1 },
+      { name: "Tone, energy, professional greeting", max: 4, weight: 1 },
+    ] },
+  { letter: "B", title: "Need Discovery & Profiling", max: 15, params: [
+      { name: "Open-ended discovery questions asked", max: 8, weight: 1 },
+      { name: "Customer need confirmed & paraphrased", max: 7, weight: 1 },
+    ] },
+  { letter: "C", title: "Product Pitch & Knowledge", max: 20, params: [
+      { name: "Accurate product features & benefits", max: 10, weight: 1 },
+      { name: "Riders, fund options, charges explained", max: 10, weight: 1 },
+    ] },
+  { letter: "D", title: "Objection Handling", max: 15, params: [
+      { name: "Acknowledged objection without dismissal", max: 7, weight: 1 },
+      { name: "Used correct rebuttal / competition pivot", max: 8, weight: 1 },
+    ] },
+  { letter: "E", title: "Closing Technique", max: 15, params: [
+      { name: "Summary of 3 benefits + urgency", max: 8, weight: 1 },
+      { name: "Asked for explicit commitment / next step", max: 7, weight: 1 },
+    ] },
+  { letter: "F", title: "Communication & Soft Skills", max: 15, params: [
+      { name: "Active listening, no dead air > 5s", max: 8, weight: 1 },
+      { name: "Empathy, clarity, pace, language", max: 7, weight: 1 },
+    ] },
+  { letter: "G", title: "Compliance & Documentation", max: 10, params: [
+      { name: "T&C disclosure complete & timely", max: 6, weight: 1 },
+      { name: "Disposition / call-back scheduled correctly", max: 4, weight: 1 },
+    ] },
+];
+
+function buildSheet(roster: RosterAgent, keyAgent: Agent | null): SheetSection[] {
+  // Map by section letter → ratio derived from the closest matching dimension on the agent.
+  // Fall back to overall CQI ratio.
+  const baseRatio = Math.max(0.4, Math.min(1, roster.cqi / 100));
+  const dimsByCode: Record<string, number> = {};
+  if (keyAgent) {
+    for (const d of keyAgent.dimensions) {
+      dimsByCode[d.code] = d.score / d.max;
+    }
+  }
+  const sectionToDim: Record<string, string> = {
+    A: "D1", B: "D2", C: "D2", D: "D3", E: "D5", F: "D4", G: "D6",
+  };
+  let n = 0;
+  return SECTION_TEMPLATE.map((s) => {
+    const dimRatio = dimsByCode[sectionToDim[s.letter]] ?? baseRatio;
+    // Slight per-section jitter so all 7 sections don't look identical
+    const jitter = ({ A: 0.02, B: -0.04, C: -0.06, D: -0.10, E: -0.05, F: 0, G: 0.06 } as Record<string, number>)[s.letter];
+    const sectionRatio = Math.max(0.35, Math.min(1, dimRatio + jitter));
+    const params: SheetParam[] = s.params.map((p) => {
+      n += 1;
+      const score = Math.max(1, Math.min(p.max, Math.round(p.max * sectionRatio)));
+      return {
+        n,
+        name: p.name,
+        max: p.max,
+        score,
+        remarks: remarkFor(p.max, score),
+      };
+    });
+    return { letter: s.letter, title: s.title, max: s.max, params };
+  });
+}
+
+function remarkFor(max: number, score: number): string {
+  const pct = score / max;
+  if (pct >= 0.9) return "Consistent on this parameter";
+  if (pct >= 0.75) return "Mostly on script — minor coaching";
+  if (pct >= 0.6) return "Inconsistent — targeted drill recommended";
+  return "Gap — priority for AI coaching";
+}
+
+function scoreClass(score: number, max: number): string {
+  const pct = score / max;
+  if (pct >= 0.8) return "text-acc-green";
+  if (pct >= 0.6) return "text-acc-sand";
+  return "text-acc-mauve";
+}
+
+function FeedbackSheet({ roster, keyAgent }: { roster: RosterAgent; keyAgent: Agent | null }) {
+  const sections = buildSheet(roster, keyAgent);
+  const total = sections.reduce((s, sec) => s + sec.params.reduce((a, p) => a + p.score, 0), 0);
+  const out = sections.reduce((s, sec) => s + sec.max, 0);
+  const pct = Math.round((total / out) * 100);
+  const rating: "A" | "B" | "C" = pct >= 90 ? "A" : pct >= 85 ? "B" : "C";
+
+  const aiPattern = keyAgent?.feedback.aiPattern
+    ?? `AI analyzed ${30 + roster.rank} calls over the last 14 days. ${roster.name} sits at CQI ${roster.cqi.toFixed(1)}% (Cat ${roster.cat}). Pattern: ${roster.cat === "C" ? "consistent gaps in objection handling and closing — AI coaching deployed." : roster.cat === "B" ? "on-track with isolated dips on competition pivots — targeted micro-coaching active." : "high consistency across all dimensions — maintain monitoring cadence."}`;
+
+  const strengths = keyAgent?.feedback.strengths ?? [
+    "Compliance disclosure delivered on time",
+    "Professional tone maintained throughout",
+    "Customer rapport built within first 30 seconds",
+  ];
+  const improvements = keyAgent?.feedback.improvements ?? [
+    "Strengthen competition counter-pivots (HDFC / SBI)",
+    "Summarize 3 benefits before closing",
+    "Ask explicit commitment question at close",
+  ];
+  const actionPlan = keyAgent?.feedback.actionPlan
+    ?? `AI micro-coaching scheduled over next 5 days. STT will re-score daily. Day 5 assessment with ${roster.tl}. Escalate to Trainer + TL if no movement.`;
+
+  const actionRequired = roster.cap !== "None"
+    ? `${roster.cap} in effect — TL + QA Manager must co-sign weekly review until exit criteria are met.`
+    : roster.training === "Escalated"
+      ? "AI coaching exhausted — Trainer + TL classroom intervention required this week."
+      : roster.cat === "C"
+        ? "Enrol agent in next AI coaching cohort; QA Manager to review Day 5 assessment outcome."
+        : "Continue STT live monitoring. No human escalation required at this stage.";
+
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[12.5px]">
-        <Meta label="Agent" value={a.name} />
-        <Meta label="Emp ID" value={a.empId} />
-        <Meta label="TL" value={a.tl} />
+    <div className="space-y-5">
+      {/* Agent info grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 text-[12.5px]">
+        <Meta label="Agent" value={roster.name} />
+        <Meta label="ID" value={roster.empId} />
+        <Meta label="TL" value={roster.tl} />
+        <Meta label="Process" value="Savings · Outbound" />
         <Meta label="Date" value="29 Apr 2026" />
+        <Meta label="Reviewer" value="AI Quality Engine + Divya Krishnan (QA)" />
+        <Meta label="Calls Reviewed" value={`${30 + roster.rank}`} />
       </div>
 
-      <div className="rounded-md border border-acc-blue/30 bg-acc-blue/5 p-3">
-        <div className="text-[10.5px] uppercase tracking-[0.14em] text-acc-blue font-medium mb-1">AI Pattern Detection</div>
-        <div className="text-[13px] text-foreground/90 leading-snug">{a.feedback.aiPattern}</div>
+      {/* AI Pattern + Action Required */}
+      <div className="grid md:grid-cols-2 gap-3">
+        <div className="rounded-md border-l-4 border-l-acc-green border border-acc-green/30 bg-acc-green/[0.06] p-3">
+          <div className="text-[10.5px] uppercase tracking-[0.14em] text-acc-green font-medium mb-1">🧠 AI Pattern Detection</div>
+          <div className="text-[13px] text-foreground/90 leading-snug">{aiPattern}</div>
+        </div>
+        <div className="rounded-md border border-acc-sand/30 bg-acc-sand/[0.06] p-3">
+          <div className="text-[10.5px] uppercase tracking-[0.14em] text-acc-sand font-medium mb-1">⚡ Action Required</div>
+          <div className="text-[13px] text-foreground/90 leading-snug">{actionRequired}</div>
+        </div>
       </div>
 
-      <div>
-        <div className="text-[13px] font-medium mb-2">CQI Scoring by Dimension</div>
-        <table className="w-full text-[12.5px] border border-border rounded-md overflow-hidden">
-          <thead className="bg-surface-2 text-dim text-[11px] uppercase tracking-wider">
-            <tr>
-              <th className="text-left py-2 px-3">Dim</th>
-              <th className="text-left py-2 px-3">Parameter</th>
-              <th className="text-right py-2 px-3">Score</th>
-              <th className="text-left py-2 px-3">Remarks</th>
-            </tr>
-          </thead>
-          <tbody>
-            {a.dimensions.map((d, i) => (
-              <tr key={d.code} className="border-t border-border">
-                <td className="py-2 px-3 font-mono text-dim">{d.code}</td>
-                <td className="py-2 px-3">{d.name}</td>
-                <td className="py-2 px-3 text-right font-mono">{d.score}/{d.max}</td>
-                <td className="py-2 px-3 text-text-secondary">{a.feedback.remarks[i]}</td>
-              </tr>
-            ))}
-            <tr className="bg-surface-2 border-t border-border">
-              <td className="py-2 px-3" />
-              <td className="py-2 px-3 font-medium">Grand Total</td>
-              <td className="py-2 px-3 text-right font-mono text-acc-green">{a.score}/{a.out} ({a.pct}%)</td>
-              <td className="py-2 px-3"><CatBadge cat={a.category} /></td>
-            </tr>
-          </tbody>
-        </table>
+      {/* Sections A-G */}
+      <div className="space-y-3">
+        {sections.map((sec) => {
+          const secScore = sec.params.reduce((a, p) => a + p.score, 0);
+          return (
+            <div key={sec.letter} className="rounded-md border border-border overflow-hidden">
+              <div className="flex items-center justify-between bg-surface-2 px-3 py-2 border-b border-border">
+                <div className="text-[13px] font-semibold">
+                  <span className="font-mono text-acc-blue mr-2">Section {sec.letter}</span>
+                  {sec.title}
+                </div>
+                <div className={`font-mono text-[13px] ${scoreClass(secScore, sec.max)}`}>{secScore} / {sec.max}</div>
+              </div>
+              <table className="w-full text-[12.5px]">
+                <thead className="text-dim text-[10.5px] uppercase tracking-wider">
+                  <tr className="border-b border-border">
+                    <th className="text-left py-1.5 px-3 w-10 font-medium">#</th>
+                    <th className="text-left py-1.5 px-3 font-medium">Parameter</th>
+                    <th className="text-right py-1.5 px-3 w-14 font-medium">Max</th>
+                    <th className="text-right py-1.5 px-3 w-16 font-medium">Score</th>
+                    <th className="text-left py-1.5 px-3 font-medium">Remarks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sec.params.map((p) => (
+                    <tr key={p.n} className="border-t border-border/60">
+                      <td className="py-1.5 px-3 font-mono text-dim">{p.n}</td>
+                      <td className="py-1.5 px-3">{p.name}</td>
+                      <td className="py-1.5 px-3 text-right font-mono text-text-secondary">{p.max}</td>
+                      <td className={`py-1.5 px-3 text-right font-mono ${scoreClass(p.score, p.max)}`}>{p.score}</td>
+                      <td className="py-1.5 px-3 text-text-secondary">{p.remarks}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        })}
       </div>
 
+      {/* Grand Total */}
+      <div className="rounded-md border border-acc-green/40 bg-acc-green/[0.06] p-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+          <div>
+            <div className="text-[10.5px] uppercase tracking-wider text-dim">Total</div>
+            <div className="font-mono text-[22px] text-foreground">{total}</div>
+          </div>
+          <div>
+            <div className="text-[10.5px] uppercase tracking-wider text-dim">Max</div>
+            <div className="font-mono text-[22px] text-text-secondary">{out}</div>
+          </div>
+          <div>
+            <div className="text-[10.5px] uppercase tracking-wider text-dim">Percentage</div>
+            <div className={`font-mono text-[22px] ${scoreClass(total, out)}`}>{pct}%</div>
+          </div>
+          <div className="flex flex-col items-center justify-center">
+            <div className="text-[10.5px] uppercase tracking-wider text-dim mb-1">Rating</div>
+            <CatBadge cat={rating} />
+          </div>
+        </div>
+      </div>
+
+      {/* Strengths & Improvements */}
       <div className="grid md:grid-cols-2 gap-3">
         <div className="rounded-md border border-acc-green/30 bg-acc-green/5 p-3">
-          <div className="text-[11px] uppercase tracking-wider text-acc-green mb-1.5">Strengths</div>
-          <ul className="text-[13px] space-y-1">
-            {a.feedback.strengths.map((s, i) => <li key={i}>• {s}</li>)}
+          <div className="text-[11px] uppercase tracking-wider text-acc-green mb-2">Strengths</div>
+          <ul className="text-[13px] space-y-1.5">
+            {strengths.map((s, i) => <li key={i} className="flex gap-2"><span className="text-acc-green">●</span>{s}</li>)}
           </ul>
         </div>
         <div className="rounded-md border border-acc-sand/30 bg-acc-sand/5 p-3">
-          <div className="text-[11px] uppercase tracking-wider text-acc-sand mb-1.5">Areas for Improvement</div>
-          <ul className="text-[13px] space-y-1">
-            {a.feedback.improvements.map((s, i) => <li key={i}>• {s}</li>)}
+          <div className="text-[11px] uppercase tracking-wider text-acc-sand mb-2">Areas for Improvement</div>
+          <ul className="text-[13px] space-y-1.5">
+            {improvements.map((s, i) => <li key={i} className="flex gap-2"><span className="text-acc-sand">●</span>{s}</li>)}
           </ul>
         </div>
       </div>
 
-      <div className="rounded-md border border-border bg-surface-2 p-3">
-        <div className="text-[11px] uppercase tracking-wider text-dim mb-1.5">AI Action Plan</div>
-        <div className="text-[13px] leading-snug">{a.feedback.actionPlan}</div>
+      {/* AI Action Plan */}
+      <div className="rounded-md border border-acc-green/30 bg-acc-green/[0.06] p-4">
+        <div className="text-[11px] uppercase tracking-wider text-acc-green mb-2">AI Action Plan</div>
+        <ol className="text-[13px] space-y-1.5 list-decimal pl-5">
+          <li>{actionPlan}</li>
+          <li>STT live-monitors every call for the next 5 working days; deviation triggers real-time nudge.</li>
+          <li>Day 5 assessment auto-scheduled — pre vs post CQI delta reported to TL ({roster.tl}) and QA Manager.</li>
+          <li>If no improvement after 5 days, escalate to classroom training with Trainer + TL shadowing.</li>
+        </ol>
       </div>
+
+      {/* Signature */}
+      <div className="grid grid-cols-3 gap-3 pt-4 border-t border-border text-[12px]">
+        <SignBlock label="Agent" value={roster.name} />
+        <SignBlock label="Reviewer" value="Divya Krishnan · QA" />
+        <SignBlock label="Date" value="29 Apr 2026" />
+      </div>
+    </div>
+  );
+}
+
+function SignBlock({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="border-b border-border h-8" />
+      <div className="text-[10.5px] uppercase tracking-wider text-dim mt-1">{label}</div>
+      <div className="text-[12.5px]">{value}</div>
     </div>
   );
 }
