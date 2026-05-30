@@ -1157,6 +1157,11 @@ type CallExcerpt = {
   correct: string;
 };
 type FbaRow = { feature: string; axis: string; hdfc: string; sbi: string; icici?: string };
+type AltCheat = {
+  title: string;
+  intro?: string;
+  rows: { k: string; v: string; tone?: "green" | "amber" | "mauve" | "neutral" }[];
+};
 type AgentPlan = {
   kind: "coaching" | "star" | "cap" | "escalated";
   targetCqi: number;
@@ -1164,6 +1169,7 @@ type AgentPlan = {
   coachNote: string;
   excerpts?: CallExcerpt[];
   fba?: FbaRow[];
+  altCheat?: AltCheat;
   quiz?: { q: string; a: string }[];
   schedule?: { day: string; what: string; tone: "green" | "amber" | "neutral" }[];
   closing: string;
