@@ -2180,3 +2180,370 @@ function EISReport({ roster, keyAgent }: { roster: RosterAgent; keyAgent: Agent 
     </div>
   );
 }
+
+// ============================================================
+// Roster Training Plan — synthesize rich plan for non-key agents
+// ============================================================
+
+type TopicTemplate = Omit<AgentPlan, "targetCqi" | "coachNote" | "closing"> & {
+  coachNote: (firstName: string) => string;
+  closing: (firstName: string, gain: number) => string;
+  targetCqiBoost: number;
+};
+
+const TOPIC_TEMPLATES: { match: RegExp; key: string; tpl: TopicTemplate }[] = [
+  {
+    key: "tnc",
+    match: /T&C|t&c|timing/i,
+    tpl: {
+      kind: "coaching",
+      targetCqiBoost: 4,
+      gap: "T&C disclosure timing — disclosure landing after the premium pitch. Compliance risk.",
+      coachNote: (n) =>
+        `Hi ${n} — your tone and product fluency are strong. The one fix: T&C must land in the first 30 seconds, before any premium discussion. This is an IRDAI compliance requirement and eliminates the 'aapne charges nahi bataye' objection.`,
+      excerpts: [
+        {
+          scenario: "Late T&C disclosure",
+          customer: "Haan boliye, kya plan hai aapke paas?",
+          agent: "Sir premium ₹17,131 hai, 10 lakh cover… (T&C only at 1:42)",
+          analysis:
+            "Premium discussion began at 0:15. T&C framework came at 1:42 — customer was already anchored on price and confused about what 'charges' covered.",
+          correct:
+            "Within 10 sec: 'Yeh call quality aur training purpose ke liye record ho rahi hai.' Within 30 sec: T&C framework — cover scope, charges, free-look. THEN premium.",
+        },
+      ],
+      altCheat: {
+        title: "T&C Compliance Sequence — First 30 Seconds",
+        intro: "Complete in this order BEFORE any premium discussion.",
+        rows: [
+          { k: "0–10 sec", v: "Call recording disclosure — verbatim line.", tone: "green" },
+          { k: "10–20 sec", v: "T&C framework — cover scope, charges, free-look period.", tone: "green" },
+          { k: "20–30 sec", v: "Confirm policy holder / decision maker identity.", tone: "green" },
+          { k: "After 30 sec", v: "ONLY now begin premium and product discussion.", tone: "amber" },
+          { k: "Never", v: "Premium before T&C — IRDAI compliance breach.", tone: "mauve" },
+        ],
+      },
+      quiz: [
+        { q: "What 3 things must you cover in the first 30 seconds?", a: "(1) Recording disclosure. (2) T&C framework — cover, charges, free-look. (3) Confirm decision maker." },
+        { q: "Why mention T&C BEFORE premium?", a: "IRDAI compliance, and pre-empts the 'aapne charges nahi bataye' objection. Trust before price anchor." },
+        { q: "Customer says 'aapne pehle charges kyun nahi bataye' — recover how?", a: "Acknowledge → re-disclose now → offer free-look as safety net. No defensiveness." },
+      ],
+      schedule: [
+        { day: "Day 1", what: "30-second opening script + drill (AI)", tone: "green" },
+        { day: "Day 2–4", what: "STT timing audit on every opening", tone: "green" },
+        { day: "Day 5", what: "Assessment — 5 questions", tone: "amber" },
+        { day: "If pass", what: "Cleared for Cat A track", tone: "neutral" },
+      ],
+      closing: (n, g) => `${n}, this is a 5-day fix. Stay disciplined on the first 30 seconds and you gain ~${g} CQI points.`,
+    },
+  },
+  {
+    key: "closing",
+    match: /closing|3-S|sochta/i,
+    tpl: {
+      kind: "coaching",
+      targetCqiBoost: 4,
+      gap: "Closing technique — no urgency anchor, no benefit restatement. Losing 'sochta hoon' customers.",
+      coachNote: (n) =>
+        `Hi ${n} — your discovery and product pitch are good. The last 90 seconds are where the conversion lives. Use the 3-S close every time: Summarize → Urgency → Specific next step.`,
+      excerpts: [
+        {
+          scenario: "'Sochta hoon' surrender",
+          customer: "Sochta hoon, baad mein batata hoon.",
+          agent: "Okay sir, aap soch lijiye. (call ended)",
+          analysis: "Deferral accepted with no urgency and no callback slot. Customer leaves with zero commitment.",
+          correct:
+            "Bilkul sir. Bas ek baat — early renewal discount 7% sirf 25 April tak valid hai. Main kal shaam 6 baje call karungi — tab tak aap decide kar lijiye.",
+        },
+      ],
+      altCheat: {
+        title: "Closing Technique Framework — The 3-S Close",
+        intro: "Last 90 seconds of every call. Never skip a step.",
+        rows: [
+          { k: "Step 1 — Summarize", v: "Top 3 benefits in one sentence. Re-anchor on value, not price.", tone: "green" },
+          { k: "Step 2 — Urgency", v: "Only real deadlines: discount cut-off, NAV cycle, age-band change. Never invent.", tone: "green" },
+          { k: "Step 3 — Next step", v: "Specific: 'Main kal 6 baje call karungi' OR 'Payment link bhej rahi hoon.'", tone: "green" },
+          { k: "❌ Never do", v: "'Okay sir, aap soch lijiye.' — that's surrender, not a close.", tone: "mauve" },
+        ],
+      },
+      quiz: [
+        { q: "Customer says 'sochta hoon' — what 2 things before ending?", a: "(1) Time-bound urgency anchor. (2) Specific callback time." },
+        { q: "Why restate benefits in the last 60 seconds?", a: "Re-anchors on value, not price. It's what the customer remembers." },
+        { q: "What urgency can you create without pressure-selling?", a: "Real deadlines only — discount cut-off, NAV cycle, age-band premium change." },
+      ],
+      schedule: [
+        { day: "Day 1", what: "3-S closing framework + script (AI)", tone: "green" },
+        { day: "Day 2–4", what: "STT monitoring on last 90 seconds", tone: "green" },
+        { day: "Day 5", what: "Assessment + CQI reassessment", tone: "amber" },
+        { day: "Goal", what: "Top Quartile within 2 weeks", tone: "neutral" },
+      ],
+      closing: (n, g) => `${n}, the 3-S close is worth ~${g} points. Use it on every call this week.`,
+    },
+  },
+  {
+    key: "charges",
+    match: /charges|clarity|transpar/i,
+    tpl: {
+      kind: "coaching",
+      targetCqiBoost: 4,
+      gap: "Charges communication — admin charge and FMC not proactively explained. Trust erodes mid-call.",
+      coachNote: (n) =>
+        `Hi ${n} — customers don't dislike charges, they dislike surprises. Front-load the structure once, frame the admin charge as refundable, and the objection disappears.`,
+      excerpts: [
+        {
+          scenario: "Charges discovered late",
+          customer: "Annual charges alag se lagte hain kya?",
+          agent: "Ji… admin charges hain thode se… details bhej dungi.",
+          analysis: "Vague reply triggered suspicion. Customer asked for a delay instead of paying.",
+          correct:
+            "Bilkul transparent batati hoon — admin charge ₹500/month hai, pehle 10 saal tak. Lekin yeh maturity pe wapas mil jaata hai — actual loss zero. FMC 1.35% se 0.90% tak reduce hota hai over time.",
+        },
+      ],
+      altCheat: {
+        title: "Charges Script — Proactive Disclosure",
+        intro: "Use these exact lines within the first product explanation.",
+        rows: [
+          { k: "Admin charge", v: "'₹500/month, 10 saal, maturity pe wapas — net cost zero.'", tone: "green" },
+          { k: "FMC", v: "'1.35% starting, time ke saath 0.90% tak reduce hota hai.'", tone: "green" },
+          { k: "Allocation", v: "'Zero allocation charge — full premium invest hota hai.'", tone: "green" },
+          { k: "❌ Avoid", v: "'Charges thode se hain' — vague language erodes trust.", tone: "mauve" },
+        ],
+      },
+      quiz: [
+        { q: "How do you frame the admin charge as an advantage?", a: "10 years only AND fully refunded at maturity → true cost is zero." },
+        { q: "What is the FMC trajectory?", a: "Reduces from 1.35% to 0.90% over time — unlike HDFC where it stays fixed." },
+        { q: "Customer says 'charges hi charges hain' — recover how?", a: "Acknowledge → walk through each charge with the offset (refund, reduction, zero allocation)." },
+      ],
+      schedule: [
+        { day: "Day 1", what: "Charges script + drill (AI)", tone: "green" },
+        { day: "Day 2–4", what: "STT flags on every 'charge' / 'fees' mention", tone: "green" },
+        { day: "Day 5", what: "Assessment + reassess", tone: "amber" },
+        { day: "Goal", what: "Same-call conversion uplift", tone: "neutral" },
+      ],
+      closing: (n, g) => `${n}, transparency closes more than discounts. Expect ~${g} CQI points within 5 days.`,
+    },
+  },
+  {
+    key: "objection",
+    match: /objection|competition|rebuttal/i,
+    tpl: {
+      kind: "coaching",
+      targetCqiBoost: 4,
+      gap: "Objection handling on competition comparisons — losing data battles vs HDFC, SBI, ICICI.",
+      coachNote: (n) =>
+        `Hi ${n} — when a customer name-drops HDFC or SBI, that's a buying signal, not a rejection. Match the number, then add an Axis Max Life differentiator. Never say 'main check karti hoon.'`,
+      excerpts: [
+        {
+          scenario: "HDFC claim settlement objection",
+          customer: "HDFC ka claim settlement bhi 98% se upar hai.",
+          agent: "Haan sir similar hi hoga…",
+          analysis: "Conceded the comparison instead of winning on the specific number. Lost the differentiator.",
+          correct:
+            "Bilkul sir — HDFC 98.2% hai, hamara 98.7% — slightly higher. Aur hamara FMC time ke saath reduce hota hai 1.35% se 0.90% tak — HDFC mein fixed rehta hai.",
+        },
+      ],
+      fba: [
+        { feature: "Claim settlement", axis: "98.7% ✓", hdfc: "98.2%", sbi: "97.4%", icici: "97.9%" },
+        { feature: "Allocation charge", axis: "Zero ✓", hdfc: "Zero", sbi: "3–6% (Yr 1–3)", icici: "1.5–4%" },
+        { feature: "FMC", axis: "1.35% → 0.90% ✓", hdfc: "1.35% fixed", sbi: "1.35% fixed", icici: "1.35% fixed" },
+        { feature: "Fund options", axis: "22 ✓", hdfc: "11", sbi: "9", icici: "8" },
+        { feature: "Free switching", axis: "Unlimited ✓", hdfc: "12/yr", sbi: "2/yr", icici: "4/yr" },
+      ],
+      quiz: [
+        { q: "Customer cites HDFC's claim settlement — your move?", a: "Match the number (98.2% vs 98.7%), then add a second differentiator (reducing FMC)." },
+        { q: "Customer says SBI is cheaper — your move?", a: "Reframe: SBI has 3–6% allocation charge in Yr 1–3; Axis has zero. Long-term, Axis is cheaper." },
+        { q: "What 3 numbers must you have memorised?", a: "98.7% claim settlement, FMC 1.35→0.90, 22 fund options." },
+      ],
+      schedule: [
+        { day: "Day 1", what: "Competition cheat sheet drill (AI)", tone: "green" },
+        { day: "Day 2–4", what: "STT flags on every competitor mention", tone: "green" },
+        { day: "Day 5", what: "Assessment + CQI reassessment", tone: "amber" },
+        { day: "Goal", what: "Zero 'main check karti hoon' moments", tone: "neutral" },
+      ],
+      closing: (n, g) => `${n}, every competitor mention is a sale to be won. Target ~${g} CQI points this week.`,
+    },
+  },
+  {
+    key: "product",
+    match: /product|bootcamp|rider|step-up/i,
+    tpl: {
+      kind: "coaching",
+      targetCqiBoost: 5,
+      gap: "Product knowledge — riders, fund options, and benefit structure not at fingertips. Dead air spikes.",
+      coachNote: (n) =>
+        `Hi ${n} — product fluency is the foundation everything else rests on. This week is a focused refresher on the 3 covers, 22 funds, and the rider menu. No more 'ek minute main check karti hoon.'`,
+      excerpts: [
+        {
+          scenario: "Cannot list what the plan covers",
+          customer: "Is plan mein kya kya cover hota hai?",
+          agent: "Sir, isme life cover hota hai… aur kuch riders bhi hain… (9 sec pause)",
+          analysis: "Could not list the three core covers. 9-second dead air. Trust collapsed mid-call.",
+          correct:
+            "Teen cheezein cover hoti hain: (1) Life cover 10x annual premium, (2) Critical illness rider — 34 bimariyon, (3) Accidental death benefit — extra 50 lakh. Plus 22 fund options.",
+        },
+      ],
+      altCheat: {
+        title: "Product Quick Reference",
+        intro: "Memorise these. Use them in every product pitch.",
+        rows: [
+          { k: "Core covers", v: "Life cover (10x premium) + 34-illness critical rider + 50 lakh accidental death.", tone: "green" },
+          { k: "Fund options", v: "22 funds — equity, debt, balanced. Switching free and unlimited.", tone: "green" },
+          { k: "Riders", v: "Critical illness, accidental death, waiver of premium, term booster.", tone: "green" },
+          { k: "❌ Never say", v: "'Ek minute main check karti hoon' on basic product questions.", tone: "mauve" },
+        ],
+      },
+      quiz: [
+        { q: "Name the 3 core covers in one sentence.", a: "Life cover (10x annual premium), 34-illness critical rider, ₹50 lakh accidental death." },
+        { q: "How many fund options? Switching policy?", a: "22 funds. Free and unlimited switching." },
+        { q: "Customer asks 'riders kya hain' — 2-sentence answer.", a: "Extra benefits on top of the base policy. Top 3: critical illness (34 conditions), accidental death (extra 50 lakh), waiver of premium." },
+      ],
+      schedule: [
+        { day: "Day 1", what: "Product quick-ref + flashcards (AI)", tone: "green" },
+        { day: "Day 2–4", what: "STT flags on every 'check karti hoon' instance", tone: "green" },
+        { day: "Day 5", what: "Assessment — must score 80%+", tone: "amber" },
+        { day: "If fail", what: "Escalate to Trainer", tone: "neutral" },
+      ],
+      closing: (n, g) => `${n}, product fluency is the single highest-ROI fix. Expect ~${g} CQI points in 5 days.`,
+    },
+  },
+  {
+    key: "listening",
+    match: /listening|active/i,
+    tpl: {
+      kind: "coaching",
+      targetCqiBoost: 4,
+      gap: "Active listening — interrupting customers, not paraphrasing concerns. Empathy score low.",
+      coachNote: (n) =>
+        `Hi ${n} — customers tell you exactly what to sell them if you let them finish. This week: pause, paraphrase, then respond. No interruptions in the first 90 seconds.`,
+      excerpts: [
+        {
+          scenario: "Interrupted the customer",
+          customer: "Mere papa ka hospital expense bahut zyada hua tha, isliye main soch raha hoon…",
+          agent: "Sir hamare plan mein critical illness rider hai! 34 bimariyan cover hoti hain!",
+          analysis: "Interrupted at 0:08 of a 25-second emotional disclosure. Killed rapport and missed the buying motive.",
+          correct:
+            "(Listen fully) 'Samajh sakti hoon sir — woh experience bahut tough hota hai. Aap apne family ko aisi situation mein protect karna chahte hain. Iske liye hamare paas exactly woh solution hai…' (then pitch).",
+        },
+      ],
+      altCheat: {
+        title: "Active Listening — The PPR Framework",
+        intro: "Pause, Paraphrase, Respond. In that order. Every time.",
+        rows: [
+          { k: "Pause", v: "2-second silence after customer finishes. Don't fill with 'haan sir haan sir'.", tone: "green" },
+          { k: "Paraphrase", v: "'Aap keh rahe hain ki…' — confirm you heard the actual concern.", tone: "green" },
+          { k: "Respond", v: "Tie your pitch to the paraphrased concern. Not your standard script.", tone: "green" },
+          { k: "❌ Never", v: "Interrupt in the first 90 seconds. Even with the 'right' answer.", tone: "mauve" },
+        ],
+      },
+      quiz: [
+        { q: "What does PPR stand for?", a: "Pause, Paraphrase, Respond." },
+        { q: "How long should the pause after a customer finishes be?", a: "About 2 seconds — long enough to signal you're listening, short enough to keep flow." },
+        { q: "Why paraphrase before responding?", a: "Confirms accurate understanding and demonstrates empathy — customer feels heard before sold to." },
+      ],
+      schedule: [
+        { day: "Day 1", what: "PPR framework module (AI)", tone: "green" },
+        { day: "Day 2–4", what: "STT flags on every interruption < 90 sec", tone: "green" },
+        { day: "Day 5", what: "Assessment + empathy reassess", tone: "amber" },
+        { day: "Goal", what: "Zero interruptions in opening 90 sec", tone: "neutral" },
+      ],
+      closing: (n, g) => `${n}, listening is the most underrated skill on the floor. Target ~${g} CQI points.`,
+    },
+  },
+  {
+    key: "compliance",
+    match: /compliance|refresher|CAP/i,
+    tpl: {
+      kind: "cap",
+      targetCqiBoost: 8,
+      gap: "Compliance — unauthorized commitments and language drift. CAP-level risk.",
+      coachNote: (n) =>
+        `${n} — this is a compliance-critical plan. Unauthorized promises put the company at IRDAI risk. Complete this refresher, score 85%+, and shadow with your TL for a week before solo calls.`,
+      excerpts: [
+        {
+          scenario: "Unauthorized fee waiver promise",
+          customer: "Last year jaisa fee waiver de denge?",
+          agent: "Agar aaj renewal kar dete hain to fee waive kar denge — guaranteed.",
+          analysis: "Unauthorized commitment. Fee waiver requires manager approval. 'Guaranteed' creates a binding promise.",
+          correct:
+            "Sir, waiver ke liye manager approval chahiye — main 2 ghante mein confirm karti hoon. Abhi ke liye early renewal pe 7% loyalty discount already applicable hai.",
+        },
+      ],
+      altCheat: {
+        title: "Compliance Rules — What You Cannot Say",
+        intro: "These phrases trigger IRDAI exposure. Use the approved alternatives.",
+        rows: [
+          { k: "❌ 'Guaranteed returns'", v: "✓ 'Expected returns based on historical performance. Market-linked, past performance not indicative.'", tone: "mauve" },
+          { k: "❌ 'Fee waiver guaranteed'", v: "✓ 'Needs manager approval — I'll confirm in 2 hours.'", tone: "mauve" },
+          { k: "❌ 'Tax-free guaranteed'", v: "✓ 'Subject to tax laws as applicable.'", tone: "mauve" },
+          { k: "❌ 'Cancel anytime, full refund'", v: "✓ 'Free-look period of 15 days from receipt. Surrender charges apply thereafter.'", tone: "mauve" },
+        ],
+      },
+      quiz: [
+        { q: "Customer asks for a fee waiver — what do you do?", a: "Acknowledge → tell them manager approval is needed → commit callback window → offer existing loyalty discount." },
+        { q: "Can you say 'guaranteed returns' for a ULIP?", a: "No. ULIPs are market-linked. 'Guaranteed' is mis-selling under IRDAI." },
+        { q: "Difference between 'expected' and 'guaranteed' returns?", a: "Expected = projection from past performance. Guaranteed = contractually binding — only for traditional non-linked products." },
+      ],
+      schedule: [
+        { day: "Today", what: "Compliance refresher (mandatory)", tone: "amber" },
+        { day: "Tomorrow", what: "Assessment — 85%+ required", tone: "amber" },
+        { day: "Week 1", what: "TL shadow on every call", tone: "neutral" },
+        { day: "If fail", what: "Escalate to CAP-3 review", tone: "neutral" },
+      ],
+      closing: (n, g) => `${n}, compliance is non-negotiable. Pass the refresher and you reopen ~${g} CQI points.`,
+    },
+  },
+];
+
+function selectTemplate(note?: string): TopicTemplate {
+  if (note) {
+    for (const t of TOPIC_TEMPLATES) if (t.match.test(note)) return t.tpl;
+  }
+  // default — generic skill refresh
+  return TOPIC_TEMPLATES.find((t) => t.key === "product")!.tpl;
+}
+
+function buildPlanForRoster(r: RosterAgent): { agent: Agent; plan: AgentPlan } {
+  const tpl = selectTemplate(r.trainingNote);
+  const targetCqi = Math.min(100, Math.round(r.cqi + tpl.targetCqiBoost));
+  const firstName = r.name.split(" ")[0];
+  const gain = Math.max(2, targetCqi - Math.round(r.cqi));
+  const plan: AgentPlan = {
+    ...tpl,
+    targetCqi,
+    coachNote: tpl.coachNote(firstName),
+    closing: tpl.closing(firstName, gain),
+  };
+  const agent = {
+    id: `roster-${r.empId}`,
+    name: r.name,
+    empId: r.empId,
+    tl: r.tl,
+    score: Math.round((r.cqi / 100) * 83),
+    out: 83 as const,
+    pct: r.cqi,
+    category: r.cat,
+    trend: [r.cqi - 2, r.cqi - 1, r.cqi, r.cqi + 0.5, r.cqi],
+    primaryGap: r.trainingNote ?? "Skill refresh",
+    trainingStatus: r.training,
+    callsToday: 0,
+    callsWeek: 0,
+    dimensions: [],
+    todaysCalls: [],
+    feedback: { aiPattern: "", strengths: [], improvements: [], actionPlan: "", remarks: [] },
+    training: {
+      title: r.trainingNote ?? "",
+      excerptCustomer: "",
+      excerptAgentWrong: "",
+      correctResponse: "",
+      cheatSheet: { title: "", rows: [] },
+      qa: [],
+      closingNote: "",
+    },
+  } as unknown as Agent;
+  return { agent, plan };
+}
+
+function RosterTrainingPlan({ r }: { r: RosterAgent }) {
+  const { agent, plan } = React.useMemo(() => buildPlanForRoster(r), [r]);
+  return <TrainingPlan a={agent} plan={plan} />;
+}
