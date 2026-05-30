@@ -2544,6 +2544,6 @@ function buildPlanForRoster(r: RosterAgent): { agent: Agent; plan: AgentPlan } {
 }
 
 function RosterTrainingPlan({ r }: { r: RosterAgent }) {
-  const { agent, plan } = React.useMemo(() => buildPlanForRoster(r), [r]);
+  const { agent, plan } = useMemo(() => buildPlanForRoster(r), [r]);
   return <TrainingPlan a={agent} plan={plan} />;
 }
