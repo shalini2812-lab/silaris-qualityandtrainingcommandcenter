@@ -279,7 +279,7 @@ function AgentView() {
           wide={modal === "feedback" || modal === "eis" || modal === "training"}
         >
           {modal === "feedback" && <FeedbackSheet roster={selected} keyAgent={keyAgent} />}
-          {modal === "training" && (keyAgent ? <TrainingPlan a={keyAgent} /> : <GenericTraining r={selected} />)}
+          {modal === "training" && (keyAgent ? <TrainingPlan a={keyAgent} /> : <RosterTrainingPlan r={selected} />)}
           {modal === "eis" && <EISReport roster={selected} keyAgent={keyAgent} />}
         </Modal>
       )}
