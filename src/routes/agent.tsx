@@ -1128,68 +1128,422 @@ function SignBlock({ label, value }: { label: string; value: string }) {
   );
 }
 
+// ============================================================
+// Per-agent rich training plans (PART C)
+// ============================================================
+type CallExcerpt = {
+  scenario: string;
+  customer: string;
+  agent: string;
+  analysis: string;
+  correct: string;
+};
+type FbaRow = { feature: string; axis: string; hdfc: string; sbi: string; icici?: string };
+type AgentPlan = {
+  kind: "coaching" | "star" | "cap" | "escalated";
+  targetCqi: number;
+  gap: string;
+  coachNote: string;
+  excerpts?: CallExcerpt[];
+  fba?: FbaRow[];
+  quiz?: { q: string; a: string }[];
+  schedule?: { day: string; what: string; tone: "green" | "amber" | "neutral" }[];
+  closing: string;
+  starStats?: { label: string; value: string }[];
+};
+
+const AGENT_PLANS: Record<string, AgentPlan> = {
+  priya: {
+    kind: "coaching",
+    targetCqi: 90,
+    gap: "Competition comparison — Axis Max Life vs HDFC / SBI / ICICI. Occurred in 31 of 47 calls this fortnight (66%).",
+    coachNote:
+      "Hi Priya — you're doing well. 84% CQI, your opening and compliance are floor-best. We're focusing on one thing: when a customer mentions HDFC or SBI, you need to respond with data, not 'main check karti hoon.'",
+    excerpts: [
+      {
+        scenario: "HDFC charges comparison",
+        customer: "HDFC ka online plan mein annual charges nahi hain. Aapke mein hain kya?",
+        agent: "Sir, hamare mein charges hain thode se… main details bhej dungi… (8 sec pause)",
+        analysis:
+          "Deflected the question and went silent. Customer interpreted the pause as 'agent doesn't know.' Dead air >5s is a quality flag.",
+        correct:
+          "Amit ji, bahut achha sawaal! Bilkul transparent batati hoon — hamare plan mein admin charge ₹500/month hai, jo pehle 10 saal tak lagta hai. Lekin yeh maturity pe wapas mil jaata hai — matlab aapka actual loss zero. Aur HDFC se compare karein toh humara claim settlement 98.7% hai jo HDFC se higher hai, aur FMC time ke saath 1.35% se 0.90% tak reduce hota hai.",
+      },
+      {
+        scenario: "SBI charges comparison",
+        customer: "SBI mein charges kam hain.",
+        agent: "Sir hamara FMC bhi kam hai, around 1% hi hoga… (wrong number)",
+        analysis: "Gave an inaccurate FMC figure and missed the SBI allocation-charge counter entirely.",
+        correct:
+          "Actually SBI mein allocation charge 3–6% pehle 3 saal lagta hai. Hamare mein zero allocation. Aur FMC humara reduce hota hai 1.35% se 0.90% — SBI mein fixed rehta hai.",
+      },
+    ],
+    fba: [
+      { feature: "Claim settlement ratio", axis: "98.7% ✓", hdfc: "98.2%", sbi: "97.4%", icici: "97.9%" },
+      { feature: "Allocation charge",      axis: "Zero ✓",  hdfc: "Zero",  sbi: "3–6% (Yr 1–3)", icici: "1.5–4%" },
+      { feature: "FMC (Fund Mgmt Charge)", axis: "1.35% → 0.90% (reducing) ✓", hdfc: "1.35% fixed", sbi: "1.35% fixed", icici: "1.35% fixed" },
+      { feature: "Admin charge",           axis: "₹500/mo, 10 yrs, refunded ✓", hdfc: "₹500/mo, non-refunded", sbi: "₹400/mo", icici: "₹500/mo" },
+      { feature: "Fund options",           axis: "22 ✓",   hdfc: "11",    sbi: "9",     icici: "8" },
+      { feature: "Free switching",         axis: "Unlimited ✓", hdfc: "12/yr free", sbi: "2/yr free", icici: "4/yr free" },
+      { feature: "Loyalty additions",      axis: "From Yr 11 ✓", hdfc: "Yr 15", sbi: "Yr 15", icici: "Yr 11" },
+    ],
+    quiz: [
+      { q: "Customer says 'HDFC mein charges nahi hain' — what 3 points do you make?", a: "(1) Both have zero allocation charge. (2) Axis admin charge is refundable at maturity — net loss zero. (3) Axis FMC reduces from 1.35% → 0.90% over time; HDFC stays at 1.35%." },
+      { q: "What is Axis Max Life's claim settlement ratio and how does it compare to SBI?", a: "98.7% — higher than SBI's 97.4%. Always quote both numbers in the same sentence." },
+      { q: "Customer says 'aapke plan mein admin charge bahut hai' — how do you turn this into an advantage?", a: "Acknowledge → reframe: charge is for 10 years only AND fully refunded at maturity → so true cost is zero, unlike HDFC where it is non-refundable." },
+    ],
+    schedule: [
+      { day: "Day 1", what: "Module + FBA cheat sheet delivered (AI)", tone: "green" },
+      { day: "Day 2–4", what: "STT live monitoring on every HDFC / SBI mention", tone: "green" },
+      { day: "Day 5", what: "Assessment + reassess CQI", tone: "amber" },
+      { day: "If <85%", what: "Escalate to Trainer + TL classroom", tone: "neutral" },
+    ],
+    closing:
+      "You improved +2 points this week. Keep using claim settlement AND reducing FMC together. Top Quartile by next Friday!",
+  },
+  rahul: {
+    kind: "coaching",
+    targetCqi: 87,
+    gap: "T&C disclosure timing — averaging 1:42 vs required <30 seconds. Compliance risk.",
+    coachNote:
+      "Hi Rahul — your product knowledge is solid and customers trust your voice. One fix: T&C must come within the first 30 seconds of your pitch. You're averaging 1:42 — that's a compliance risk we need to fix.",
+    excerpts: [
+      {
+        scenario: "Late T&C disclosure",
+        customer: "Haan boliye, kya plan hai aapke paas?",
+        agent: "Sir premium ₹17,131 hai, 10 lakh cover… (T&C only at 1:42)",
+        analysis:
+          "Started premium discussion at 0:15. Recording disclosure and T&C framework came at 1:42 — customer was already anchored on price and confused about what 'charges' covered.",
+        correct:
+          "Within 10 seconds: 'Yeh call quality aur training purpose ke liye record ho rahi hai.' Within 30 seconds: T&C framework — life cover scope, charges structure, free-look period. THEN premium discussion.",
+      },
+      {
+        scenario: "Charges objection that shouldn't have happened",
+        customer: "Charges kab bataye? Aap toh premium hi bata rahe ho.",
+        agent: "Sir bas batane hi wala tha — admin charge ₹500…",
+        analysis:
+          "Customer raised this at 3:00 because T&C came after the premium pitch. A proactive 30-second T&C eliminates this objection entirely.",
+        correct:
+          "Front-load it: 'Sir, premium discuss karne se pehle 30 second mein structure bata deti hoon — life cover, charges, aur free-look. Phir hum aapke liye plan customize karenge.'",
+      },
+    ],
+    quiz: [
+      { q: "In the first 30 seconds of a call, what 3 things must you cover?", a: "(1) Call recording disclosure. (2) T&C framework — cover, charges, free-look. (3) Confirm customer is the policy holder / decision maker." },
+      { q: "Why is it important to mention T&C BEFORE premium discussion?", a: "It is an IRDAI compliance requirement AND it pre-empts the 'aapne charges nahi bataye' objection. Trust is built before price is anchored." },
+      { q: "Customer says 'aapne pehle charges kyun nahi bataye' — how do you recover?", a: "Acknowledge → re-disclose now → offer free-look period as safety net. Do not get defensive." },
+    ],
+    schedule: [
+      { day: "Day 1", what: "30-second opening script + drill (AI)", tone: "green" },
+      { day: "Day 2–4", what: "STT timing audit on every call opening", tone: "green" },
+      { day: "Day 5", what: "Assessment due — 5 questions to confirm", tone: "amber" },
+      { day: "If pass", what: "Promoted to Category A track", tone: "neutral" },
+    ],
+    closing:
+      "Assessment is due — complete the 5 questions to confirm your improvement. You're close to Category A.",
+  },
+  anita: {
+    kind: "star",
+    targetCqi: 94,
+    gap: "None — STAR performer.",
+    coachNote: "Anita is a Category A STAR performer with 94% CQI. No training needed.",
+    starStats: [
+      { label: "Consistency", value: "4 weeks consistent Cat A" },
+      { label: "Complaints", value: "0" },
+      { label: "Fatal errors", value: "0" },
+      { label: "Daily calls (avg)", value: "23" },
+      { label: "Peer coaching", value: "Available" },
+      { label: "Learners using her calls", value: "3 agents" },
+    ],
+    closing:
+      "Available for peer coaching assignments. Recommended for recognition program. 3 agents are currently learning from Anita's call recordings as part of their training.",
+  },
+  deepak: {
+    kind: "cap",
+    targetCqi: 80,
+    gap: "Unauthorized commitments and mis-selling. CAP-2 active — IRDAI exposure.",
+    coachNote:
+      "Deepak — this is serious. Unauthorized promises put the company at IRDAI risk. You are on CAP-2. Complete this compliance refresher and score 85%+ before you can return to calls.",
+    excerpts: [
+      {
+        scenario: "Unauthorized fee waiver promise",
+        customer: "Sir last year jaisa fee waiver de denge?",
+        agent: "Agar aaj renewal kar dete hain to fee waive kar denge — guaranteed.",
+        analysis:
+          "Unauthorized commitment. Fee waiver requires manager approval. The word 'guaranteed' creates a binding promise the agent has no authority to make.",
+        correct:
+          "Sir, main samajh sakti hoon. Waiver ke liye manager approval chahiye — main check karke 2 ghante mein confirm karti hoon. Abhi ke liye, early renewal pe 7% loyalty discount already applicable hai.",
+      },
+      {
+        scenario: "Mis-selling ULIP as guaranteed",
+        customer: "Returns guaranteed hain kya?",
+        agent: "Haan sir, returns guaranteed hain.",
+        analysis:
+          "ULIPs are market-linked. The word 'guaranteed' on a ULIP is mis-selling under IRDAI guidelines and a fatal compliance breach.",
+        correct:
+          "Expected returns based on historical performance. Market-linked products mein returns market conditions pe depend karte hain. Past performance is not indicative of future returns.",
+      },
+    ],
+    quiz: [
+      { q: "A customer asks for a fee waiver. What do you do?", a: "Acknowledge → tell them it needs manager approval → commit a callback window → offer the existing approved loyalty discount as immediate value." },
+      { q: "Can you say 'guaranteed returns' for a ULIP product? Why or why not?", a: "No. ULIPs are market-linked. Saying 'guaranteed' is mis-selling under IRDAI guidelines and a fatal compliance breach." },
+      { q: "What is the difference between 'expected returns' and 'guaranteed returns'?", a: "'Expected' = projection based on historical performance, not promised. 'Guaranteed' = contractually binding — only allowed on traditional non-linked products." },
+    ],
+    schedule: [
+      { day: "Today", what: "Compliance refresher module (mandatory)", tone: "amber" },
+      { day: "Tomorrow", what: "Assessment — must score 85%+ to return to calls", tone: "amber" },
+      { day: "Week 1", what: "TL + Compliance shadow on every call", tone: "neutral" },
+      { day: "If fail", what: "CAP-3 — formal review", tone: "neutral" },
+    ],
+    closing:
+      "Complete the refresher. Score 85%+. This is CAP-2. Next step is CAP-3.",
+  },
+  sneha: {
+    kind: "coaching",
+    targetCqi: 87,
+    gap: "Closing technique — no urgency, no benefit restatement. Loses 'sochta hoon' customers.",
+    coachNote:
+      "Hi Sneha — congratulations! You moved from Category C to B in 4 weeks. That's real progress. Your closing technique is the last piece of the puzzle.",
+    excerpts: [
+      {
+        scenario: "'Sochta hoon' surrender",
+        customer: "Sochta hoon, baad mein batata hoon.",
+        agent: "Okay sir, aap soch lijiye. (call ended)",
+        analysis:
+          "Accepted the deferral without creating urgency or scheduling a follow-up. Customer leaves with no commitment and no reason to return.",
+        correct:
+          "Bilkul sir, samajh sakti hoon. Bas ek baat — early renewal discount 7% sirf 25 April tak valid hai. Uske baad regular premium lagega. Main kal shaam 6 baje call karungi — tab tak aap decide kar sakte hain.",
+      },
+      {
+        scenario: "No benefit restatement before close",
+        customer: "Theek hai, dekh leta hoon.",
+        agent: "Ji sir, thank you. Have a nice day.",
+        analysis:
+          "Closed without restating benefits. Customer leaves with no emotional anchor — only memory is the price tag.",
+        correct:
+          "Toh Sharma ji, aapko mil raha hai: 10 lakh life cover, 34 critical illness coverage, aur early renewal pe 7% discount. Yeh sab sirf ₹17,131 mein. Main payment link WhatsApp pe bhej rahi hoon.",
+      },
+    ],
+    quiz: [
+      { q: "Customer says 'sochta hoon' — what 2 things must you do before ending?", a: "(1) Create a time-bound urgency anchor (discount deadline, slot, price change). (2) Schedule a specific callback time — not 'main kabhi call karungi'." },
+      { q: "Why should you always restate benefits in the last 60 seconds?", a: "It re-anchors the customer on value, not price. The closing summary is what they remember after the call ends." },
+      { q: "What urgency can you create without pressure-selling?", a: "Real deadlines: early-renewal discount cut-off, fund NAV cycle, age-band premium change. Always factual, never invented." },
+    ],
+    schedule: [
+      { day: "Day 1", what: "Closing-summary script + 3-S framework (AI)", tone: "green" },
+      { day: "Day 2–4", what: "STT monitoring on last 90 seconds of every call", tone: "green" },
+      { day: "Day 5", what: "Assessment + reassess", tone: "amber" },
+      { day: "Goal", what: "5 points to Top Quartile", tone: "neutral" },
+    ],
+    closing:
+      "You're 5 points from Top Quartile! Keep creating urgency with deadlines and benefit summaries.",
+  },
+  manish: {
+    kind: "escalated",
+    targetCqi: 75,
+    gap: "Product knowledge — cannot explain riders, fund options. AI coaching failed after 5 days.",
+    coachNote:
+      "Manish — AI coaching hasn't moved your scores in 5 days. Your Trainer and TL have been notified. A human-led session is scheduled for tomorrow 10 AM. This training plan is your preparation.",
+    excerpts: [
+      {
+        scenario: "Cannot explain what plan covers",
+        customer: "Is plan mein kya kya cover hota hai?",
+        agent: "Sir, isme… life cover hota hai… aur kuch riders bhi hain… (dead air 9 sec)",
+        analysis:
+          "Could not list the three core covers. 9-second dead air. Customer left the call convinced the agent did not know the product.",
+        correct:
+          "Is plan mein teen cheezein cover hoti hain: (1) Life cover — 10x annual premium, (2) Critical illness rider — 34 bimariyon ka coverage, (3) Accidental death benefit — additional 50 lakh. Aur fund options mein 22 choices hain.",
+      },
+      {
+        scenario: "Wrong fund-options number",
+        customer: "Fund options kitne hain?",
+        agent: "15 hain.",
+        analysis: "Factual error — actual number is 22. Misrepresentation, even unintentional, is a compliance flag.",
+        correct:
+          "Hamare paas 22 fund options hain — equity se lekar debt tak. Aap apni risk appetite ke hisaab se choose kar sakte hain. Aur switching free aur unlimited hai.",
+      },
+    ],
+    quiz: [
+      { q: "Name 3 things covered under the savings plan.", a: "(1) Life cover — 10x annual premium. (2) Critical illness rider — 34 illnesses. (3) Accidental death benefit — additional ₹50 lakh." },
+      { q: "How many fund options does Axis Max Life offer? How many does HDFC offer?", a: "Axis Max Life — 22. HDFC — 11. Always quote both." },
+      { q: "Customer asks 'riders kya hain' — explain in 2 sentences.", a: "Riders are optional add-ons that extend the base cover — like critical illness, accidental death, waiver of premium. You pay a small extra premium and get specific extra protection on top of life cover." },
+    ],
+    schedule: [
+      { day: "Tonight", what: "Read this plan + product manual sections 3–5", tone: "amber" },
+      { day: "Tomorrow 10 AM", what: "Human-led classroom session (Trainer + TL)", tone: "amber" },
+      { day: "Week 1", what: "Daily product drill — riders, funds, charges", tone: "neutral" },
+      { day: "Day 14", what: "Re-assessment — pass to exit escalation", tone: "neutral" },
+    ],
+    closing:
+      "Your Trainer session is tomorrow 10 AM. Review this plan and the product manual tonight. Bring questions.",
+  },
+};
+
 function TrainingPlan({ a }: { a: Agent }) {
-  if (a.id === "anita") {
+  const plan = AGENT_PLANS[a.id];
+  if (!plan) return <GenericTraining r={{ name: a.name, empId: a.empId, tl: a.tl, cqi: a.pct } as any} />;
+
+  if (plan.kind === "star") {
     return (
       <div className="space-y-4">
+        <AgentInfoStrip a={a} plan={plan} />
         <div className="rounded-md border border-acc-green/30 bg-acc-green/5 p-4">
-          <div className="text-[14px] font-semibold text-acc-green flex items-center gap-2">
-            <TrendingUp className="size-4" /> {a.training.title}
+          <div className="flex items-center gap-2 text-acc-green text-[13px] font-semibold">
+            <TrendingUp className="size-4" /> STAR Recognition Summary
           </div>
-          <div className="text-[13px] text-foreground/85 mt-2 leading-relaxed">{a.training.correctResponse}</div>
+          <div className="text-[13px] text-foreground/85 mt-2 leading-relaxed">{plan.coachNote}</div>
         </div>
-        <CheatSheet sheet={a.training.cheatSheet} />
-        <div className="rounded-md border border-border bg-surface-2 p-3 text-[13px]">{a.training.closingNote}</div>
+        <div className="grid grid-cols-2 gap-2">
+          {plan.starStats?.map((s) => (
+            <div key={s.label} className="rounded-md border border-border bg-surface-2 px-3 py-2">
+              <div className="text-[10.5px] uppercase tracking-wider text-dim">{s.label}</div>
+              <div className="text-[13px] font-medium mt-0.5">{s.value}</div>
+            </div>
+          ))}
+        </div>
+        <div className="rounded-md border border-acc-green/30 bg-acc-green/5 p-3 text-[13px]">{plan.closing}</div>
       </div>
     );
   }
 
+  const coachTone = plan.kind === "cap" ? "border-acc-mauve/40 bg-acc-mauve/10 text-foreground"
+    : plan.kind === "escalated" ? "border-acc-sand/40 bg-acc-sand/10 text-foreground"
+    : "border-acc-green/30 bg-acc-green/5 text-foreground";
+
   return (
     <div className="space-y-4">
-      <div>
-        <div className="text-[10.5px] uppercase tracking-[0.14em] text-dim mb-1">Module</div>
-        <div className="text-[16px] font-semibold">{a.training.title}</div>
+      <AgentInfoStrip a={a} plan={plan} />
+
+      <div className={`rounded-md border ${coachTone} p-3 text-[13px] leading-relaxed`}>
+        <div className="text-[10.5px] uppercase tracking-wider text-dim mb-1">AI Coach Note</div>
+        {plan.coachNote}
       </div>
 
-      <div className="rounded-md border border-border bg-surface-2 p-3 text-[13px] leading-relaxed">
-        Hi {a.name.split(" ")[0]} — let's work on this together. Here's what I picked up from your recent calls, and exactly how to handle it next time.
-      </div>
-
-      <div>
-        <div className="text-[11px] uppercase tracking-wider text-dim mb-2">From a recent call</div>
-        <div className="space-y-2">
-          <Bubble who="Customer" tone="neutral">{a.training.excerptCustomer}</Bubble>
-          <Bubble who="You said" tone="sand">{a.training.excerptAgentWrong}</Bubble>
-          <Bubble who="Try this instead" tone="green">{a.training.correctResponse}</Bubble>
-        </div>
-      </div>
-
-      <CheatSheet sheet={a.training.cheatSheet} />
-
-      <div>
-        <div className="text-[11px] uppercase tracking-wider text-dim mb-2">Training Schedule</div>
-        <div className="grid grid-cols-3 gap-2 text-[12.5px]">
-          <Step n="Day 1" t="Module delivered (AI)" />
-          <Step n="Day 2–4" t="STT live monitoring" />
-          <Step n="Day 5" t="Assessment + reassess" />
-        </div>
-      </div>
-
-      <div>
-        <div className="text-[11px] uppercase tracking-wider text-dim mb-2">Self-Assessment</div>
-        <div className="space-y-2">
-          {a.training.qa.map((qa, i) => (
-            <div key={i} className="rounded-md border border-border bg-surface-2 p-3">
-              <div className="text-[13px] font-medium">Q{i + 1}. {qa.q}</div>
-              <div className="text-[12.5px] text-acc-green mt-1">→ {qa.a}</div>
+      {plan.excerpts?.map((ex, i) => (
+        <div key={i} className="space-y-2">
+          <div className="text-[11px] uppercase tracking-wider text-dim">
+            Call Excerpt {i + 1} — {ex.scenario}
+          </div>
+          <div className="rounded-md border border-border bg-surface-2 p-3 space-y-2">
+            <div>
+              <div className="text-[10.5px] uppercase tracking-wider text-acc-sand mb-0.5">Customer</div>
+              <div className="text-[13px] italic text-acc-sand/90">"{ex.customer}"</div>
             </div>
-          ))}
+            <div>
+              <div className="text-[10.5px] uppercase tracking-wider text-acc-mauve mb-0.5">Agent</div>
+              <div className="text-[13px] italic text-acc-mauve/90">"{ex.agent}"</div>
+            </div>
+            <div className="border-t border-border pt-2">
+              <div className="text-[10.5px] uppercase tracking-wider text-dim mb-0.5">AI Analysis</div>
+              <div className="text-[12.5px] text-text-secondary">{ex.analysis}</div>
+            </div>
+          </div>
+          <div className="rounded-md border border-acc-green/30 bg-acc-green/5 p-3">
+            <div className="text-[10.5px] uppercase tracking-wider text-acc-green mb-1">Correct Response</div>
+            <div className="text-[13px] leading-snug">{ex.correct}</div>
+          </div>
         </div>
-      </div>
+      ))}
+
+      {plan.fba && (
+        <div>
+          <div className="text-[11px] uppercase tracking-wider text-dim mb-2">
+            Cheat Sheet — Axis Max Life vs Competition (FBA)
+          </div>
+          <div className="rounded-md border border-border overflow-hidden text-[12px]">
+            <div className="grid grid-cols-[1.4fr_1fr_1fr_1fr_1fr] bg-surface-2 font-semibold text-text-secondary">
+              <div className="px-2.5 py-2">Feature</div>
+              <div className="px-2.5 py-2 text-acc-green">Axis Max Life</div>
+              <div className="px-2.5 py-2">HDFC</div>
+              <div className="px-2.5 py-2">SBI</div>
+              <div className="px-2.5 py-2">ICICI</div>
+            </div>
+            {plan.fba.map((r, i) => (
+              <div key={i} className="grid grid-cols-[1.4fr_1fr_1fr_1fr_1fr] border-t border-border">
+                <div className="px-2.5 py-2 text-text-secondary">{r.feature}</div>
+                <div className="px-2.5 py-2 text-acc-green">{r.axis}</div>
+                <div className="px-2.5 py-2">{r.hdfc}</div>
+                <div className="px-2.5 py-2">{r.sbi}</div>
+                <div className="px-2.5 py-2">{r.icici ?? "—"}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {plan.schedule && (
+        <div>
+          <div className="text-[11px] uppercase tracking-wider text-dim mb-2">Training Schedule</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[12.5px]">
+            {plan.schedule.map((s, i) => {
+              const tone = s.tone === "green" ? "border-acc-green/30 bg-acc-green/5 text-acc-green"
+                : s.tone === "amber" ? "border-acc-sand/40 bg-acc-sand/5 text-acc-sand"
+                : "border-border bg-surface-2 text-dim";
+              return (
+                <div key={i} className="rounded-md border border-border bg-surface-2 p-3">
+                  <div className={`text-[10.5px] uppercase tracking-wider px-1.5 py-0.5 rounded inline-block border ${tone}`}>
+                    {s.day}
+                  </div>
+                  <div className="text-[12.5px] mt-1.5 text-foreground/90">{s.what}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {plan.quiz && (
+        <div>
+          <div className="text-[11px] uppercase tracking-wider text-dim mb-2">Self-Assessment</div>
+          <div className="space-y-2">
+            {plan.quiz.map((qa, i) => <QuizItem key={i} idx={i} q={qa.q} a={qa.a} />)}
+          </div>
+        </div>
+      )}
 
       <div className="rounded-md border border-acc-green/30 bg-acc-green/5 p-3 text-[13px]">
-        {a.training.closingNote}
+        {plan.closing}
       </div>
+    </div>
+  );
+}
+
+function AgentInfoStrip({ a, plan }: { a: Agent; plan: AgentPlan }) {
+  return (
+    <div className="space-y-2">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+        <Meta label="Agent" value={`${a.name}`} />
+        <Meta label="Agent ID" value={a.empId} />
+        <Meta label="Team Leader" value={a.tl} />
+        <Meta label="Current CQI" value={`${a.pct.toFixed(1)}%`} />
+        <Meta label="Target CQI" value={`${plan.targetCqi}%`} />
+        <Meta label="Status" value={plan.kind === "star" ? "STAR" : plan.kind === "cap" ? "CAP-2 Active" : plan.kind === "escalated" ? "Escalated" : "Active Coaching"} />
+      </div>
+      {plan.gap && plan.kind !== "star" && (
+        <div className="rounded-md border border-border bg-surface-2 px-3 py-2 text-[12.5px]">
+          <span className="text-dim uppercase tracking-wider text-[10.5px] mr-2">Gap Identified</span>
+          <span className="text-foreground/90">{plan.gap}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function QuizItem({ idx, q, a }: { idx: number; q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-md border border-border bg-surface-2">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-start gap-2 px-3 py-2.5 text-left"
+      >
+        <ChevronDown className={`size-4 mt-0.5 text-dim transition-transform ${open ? "rotate-180" : ""}`} />
+        <div className="text-[13px] font-medium flex-1">Q{idx + 1}. {q}</div>
+      </button>
+      {open && (
+        <div className="px-3 pb-3 pl-9 text-[12.5px] text-acc-green border-t border-border pt-2">
+          → {a}
+        </div>
+      )}
     </div>
   );
 }
@@ -1206,28 +1560,6 @@ function CheatSheet({ sheet }: { sheet: Agent["training"]["cheatSheet"] }) {
           </div>
         ))}
       </div>
-    </div>
-  );
-}
-
-function Bubble({ who, tone, children }: { who: string; tone: "neutral" | "sand" | "green"; children: any }) {
-  const border = tone === "green" ? "border-acc-green/40 bg-acc-green/5"
-    : tone === "sand" ? "border-acc-sand/40 bg-acc-sand/5"
-    : "border-border bg-surface-2";
-  const color = tone === "green" ? "text-acc-green" : tone === "sand" ? "text-acc-sand" : "text-dim";
-  return (
-    <div className={`rounded-md border ${border} p-3`}>
-      <div className={`text-[10.5px] uppercase tracking-wider mb-1 ${color}`}>{who}</div>
-      <div className="text-[13px] leading-snug">{children}</div>
-    </div>
-  );
-}
-
-function Step({ n, t }: { n: string; t: string }) {
-  return (
-    <div className="rounded-md border border-border bg-surface-2 p-3">
-      <div className="text-[10.5px] uppercase tracking-wider text-acc-green">{n}</div>
-      <div className="text-[12.5px] mt-1">{t}</div>
     </div>
   );
 }
