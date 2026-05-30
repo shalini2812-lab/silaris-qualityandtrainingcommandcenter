@@ -1408,6 +1408,19 @@ const AGENT_PLANS: Record<string, AgentPlan> = {
           "Hamare paas 22 fund options hain — equity se lekar debt tak. Aap apni risk appetite ke hisaab se choose kar sakte hain. Aur switching free aur unlimited hai.",
       },
     ],
+    altCheat: {
+      title: "Product Quick Reference — Riders, Funds, Plan Variants",
+      intro: "Memorise these numbers. Customer asks → you answer in <3 seconds, no dead air.",
+      rows: [
+        { k: "Life cover", v: "10x annual premium (base). Up to 25x with additional underwriting.", tone: "green" },
+        { k: "Critical illness rider", v: "34 illnesses covered. Lump sum payout on diagnosis.", tone: "green" },
+        { k: "Accidental death benefit", v: "Additional ₹50 lakh on top of base cover.", tone: "green" },
+        { k: "Waiver of premium rider", v: "Future premiums waived on disability or critical illness.", tone: "green" },
+        { k: "Fund options", v: "22 funds — equity, debt, balanced. (HDFC: 11, SBI: 9, ICICI: 8)", tone: "green" },
+        { k: "Switching", v: "Free and unlimited. (HDFC: 12/yr free, SBI: 2/yr free)", tone: "green" },
+        { k: "Plan variants", v: "Savings, ULIP, Term, Pension, Child. 5 core categories.", tone: "neutral" },
+      ],
+    },
     quiz: [
       { q: "Name 3 things covered under the savings plan.", a: "(1) Life cover — 10x annual premium. (2) Critical illness rider — 34 illnesses. (3) Accidental death benefit — additional ₹50 lakh." },
       { q: "How many fund options does Axis Max Life offer? How many does HDFC offer?", a: "Axis Max Life — 22. HDFC — 11. Always quote both." },
