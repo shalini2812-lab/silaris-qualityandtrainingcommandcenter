@@ -1612,8 +1612,8 @@ function TrainingScheduleTimeline({ items }: { items: NonNullable<AgentPlan["sch
   );
 }
 
-function TrainingPlan({ a }: { a: Agent }) {
-  const plan = AGENT_PLANS[a.id];
+function TrainingPlan({ a, plan: planProp }: { a: Agent; plan?: AgentPlan }) {
+  const plan = planProp ?? AGENT_PLANS[a.id];
   if (!plan) return <GenericTraining r={{ name: a.name, empId: a.empId, tl: a.tl, cqi: a.pct } as any} />;
 
   const coachTone =
