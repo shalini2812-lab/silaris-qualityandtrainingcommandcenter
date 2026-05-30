@@ -591,6 +591,12 @@ function OverviewTab({
           <FileText className="size-4 text-acc-blue" /> View Full Feedback Sheet
         </button>
         <button
+          onClick={onOpenEis}
+          className="inline-flex items-center gap-2 rounded-md border border-acc-blue/40 bg-acc-blue/10 px-3.5 py-2 text-[13px] text-acc-blue hover:bg-acc-blue/20"
+        >
+          <ClipboardList className="size-4" /> View EIS / Daily Report
+        </button>
+        <button
           onClick={onOpenTraining}
           className="inline-flex items-center gap-2 rounded-md border border-acc-green/40 bg-acc-green/10 px-3.5 py-2 text-[13px] text-acc-green hover:bg-acc-green/20"
         >
