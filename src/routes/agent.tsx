@@ -267,7 +267,7 @@ function AgentView() {
           onClose={() => setModal(null)}
           title={modal === "feedback" ? "CALL QUALITY MONITORING SHEET" : "Personalized Training Plan"}
           subtitle={modal === "feedback" ? "Outbound Insurance Sales · BPO Operations · AI-Enhanced Review" : undefined}
-          wide={modal === "feedback"}
+          wide={modal === "feedback" || (modal === "training" && !!keyAgent && AGENT_PLANS[keyAgent.id]?.fba !== undefined)}
         >
           {modal === "feedback"
             ? <FeedbackSheet roster={selected} keyAgent={keyAgent} />
