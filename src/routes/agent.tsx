@@ -276,11 +276,7 @@ function AgentView() {
             : modal === "eis" ? "Daily Coaching Report · 28 April 2026"
             : undefined
           }
-          wide={
-            modal === "feedback"
-            || modal === "eis"
-            || (modal === "training" && !!keyAgent && AGENT_PLANS[keyAgent.id]?.fba !== undefined)
-          }
+          wide={modal === "feedback" || modal === "eis" || modal === "training"}
         >
           {modal === "feedback" && <FeedbackSheet roster={selected} keyAgent={keyAgent} />}
           {modal === "training" && (keyAgent ? <TrainingPlan a={keyAgent} /> : <GenericTraining r={selected} />)}
