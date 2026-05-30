@@ -131,6 +131,8 @@ function QLView() {
         </Card>
       </div>
 
+      <GradingClassificationCard />
+
       <Card title="Call Calibration — Latest Session (24 Apr 2026)">
         <div className="grid md:grid-cols-3 gap-3 text-[13px]">
           <NoteCard tone="green" title="Aligned (12 of 15)">
