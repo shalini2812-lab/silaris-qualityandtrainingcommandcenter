@@ -1318,6 +1318,17 @@ const AGENT_PLANS: Record<string, AgentPlan> = {
           "Expected returns based on historical performance. Market-linked products mein returns market conditions pe depend karte hain. Past performance is not indicative of future returns.",
       },
     ],
+    altCheat: {
+      title: "Compliance Rules — What You Cannot Say",
+      intro: "These phrases trigger IRDAI exposure. Memorise the approved alternatives.",
+      rows: [
+        { k: "❌ 'Guaranteed returns'", v: "✓ 'Expected returns based on historical performance. Market-linked, past performance not indicative of future.'", tone: "mauve" },
+        { k: "❌ 'Fee waiver guaranteed'", v: "✓ 'Needs manager approval — I'll confirm in 2 hours. Loyalty discount of 7% is already applicable.'", tone: "mauve" },
+        { k: "❌ 'Tax-free returns guaranteed'", v: "✓ 'Subject to tax laws as applicable. Section 10(10D) benefits depend on conditions being met.'", tone: "mauve" },
+        { k: "❌ 'Better than mutual funds'", v: "✓ 'Different product category — life cover + investment combined. Suitability depends on your goals.'", tone: "mauve" },
+        { k: "❌ 'Cancel anytime, full refund'", v: "✓ 'Free-look period of 15 days from receipt. After that, surrender charges apply per policy terms.'", tone: "mauve" },
+      ],
+    },
     quiz: [
       { q: "A customer asks for a fee waiver. What do you do?", a: "Acknowledge → tell them it needs manager approval → commit a callback window → offer the existing approved loyalty discount as immediate value." },
       { q: "Can you say 'guaranteed returns' for a ULIP product? Why or why not?", a: "No. ULIPs are market-linked. Saying 'guaranteed' is mis-selling under IRDAI guidelines and a fatal compliance breach." },
