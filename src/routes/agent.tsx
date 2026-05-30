@@ -1369,6 +1369,16 @@ const AGENT_PLANS: Record<string, AgentPlan> = {
           "Toh Sharma ji, aapko mil raha hai: 10 lakh life cover, 34 critical illness coverage, aur early renewal pe 7% discount. Yeh sab sirf ₹17,131 mein. Main payment link WhatsApp pe bhej rahi hoon.",
       },
     ],
+    altCheat: {
+      title: "Closing Technique Framework — The 3-S Close",
+      intro: "Last 90 seconds of every call. Never skip a step.",
+      rows: [
+        { k: "Step 1 — Summarize benefits", v: "Restate the top 3 benefits in one sentence. 'Aapko mil raha hai: X lakh cover, Y illness rider, Z% discount.' Re-anchor on value, not price.", tone: "green" },
+        { k: "Step 2 — Create urgency", v: "Use ONLY real deadlines: early-renewal discount cut-off, NAV cycle, age-band premium change. Never invent urgency.", tone: "green" },
+        { k: "Step 3 — Set next step", v: "Specific commitment: 'Main kal shaam 6 baje call karungi' OR 'Payment link WhatsApp pe bhej rahi hoon.' Never 'main baad mein call karungi.'", tone: "green" },
+        { k: "❌ Never do", v: "'Okay sir, aap soch lijiye.' — that's surrender, not a close.", tone: "mauve" },
+      ],
+    },
     quiz: [
       { q: "Customer says 'sochta hoon' — what 2 things must you do before ending?", a: "(1) Create a time-bound urgency anchor (discount deadline, slot, price change). (2) Schedule a specific callback time — not 'main kabhi call karungi'." },
       { q: "Why should you always restate benefits in the last 60 seconds?", a: "It re-anchors the customer on value, not price. The closing summary is what they remember after the call ends." },
