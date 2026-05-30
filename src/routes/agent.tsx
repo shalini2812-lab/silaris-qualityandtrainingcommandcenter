@@ -1447,134 +1447,248 @@ const AGENT_PLANS: Record<string, AgentPlan> = {
   },
 };
 
+function TrainingPlanHeader({ a, plan }: { a: Agent; plan: AgentPlan }) {
+  const statusLabel =
+    plan.kind === "star" ? "STAR Performer"
+    : plan.kind === "cap" ? "CAP-2 Active"
+    : plan.kind === "escalated" ? "Escalated to Trainer"
+    : "Active Coaching";
+  const statusTone =
+    plan.kind === "star" ? "text-acc-green border-acc-green/40 bg-acc-green/10"
+    : plan.kind === "cap" ? "text-acc-mauve border-acc-mauve/40 bg-acc-mauve/10"
+    : plan.kind === "escalated" ? "text-acc-sand border-acc-sand/40 bg-acc-sand/10"
+    : "text-acc-blue border-acc-blue/40 bg-acc-blue/10";
+  return (
+    <div className="rounded-md border border-border bg-surface-2 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-[10.5px] uppercase tracking-[0.18em] text-acc-green/80 font-semibold">
+            Personalized Training Plan — AI Generated
+          </div>
+          <div className="text-[12px] text-text-secondary mt-0.5">
+            Silaris Agentic AI · Auto-generated from call analysis
+          </div>
+        </div>
+        <span className={`text-[11px] px-2 py-1 rounded border ${statusTone}`}>{statusLabel}</span>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4">
+        <Meta label="Agent" value={a.name} />
+        <Meta label="Employee ID" value={a.empId} />
+        <Meta label="Team Leader" value={a.tl} />
+        <Meta label="Current CQI" value={`${a.pct.toFixed(1)}%`} />
+        <Meta label="Target CQI" value={`${plan.targetCqi}%`} />
+        <Meta label="Gap" value={`${Math.max(0, plan.targetCqi - a.pct).toFixed(1)} pts`} />
+      </div>
+      {plan.gap && plan.kind !== "star" && (
+        <div className="rounded-md border border-border bg-surface px-3 py-2 text-[12.5px] mt-3">
+          <span className="text-dim uppercase tracking-wider text-[10.5px] mr-2">Gap Identified</span>
+          <span className="text-foreground/90">{plan.gap}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ChatExcerpt({ idx, ex, agentName }: { idx: number; ex: CallExcerpt; agentName: string }) {
+  return (
+    <div className="rounded-md border border-border bg-surface-2 p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="text-[13px] font-semibold text-foreground">
+          📞 Where You Need to Improve — Call Example {idx + 1}
+        </div>
+        <div className="text-[11px] text-dim">{ex.scenario}</div>
+      </div>
+
+      {/* Chat bubbles */}
+      <div className="space-y-2">
+        <div className="flex justify-start">
+          <div className="max-w-[78%] rounded-2xl rounded-bl-sm border border-border bg-surface px-3.5 py-2">
+            <div className="text-[10.5px] uppercase tracking-wider text-dim mb-0.5">Customer</div>
+            <div className="text-[14px] italic text-acc-sand/90">"{ex.customer}"</div>
+          </div>
+        </div>
+        <div className="flex justify-end">
+          <div className="max-w-[78%] rounded-2xl rounded-br-sm border border-acc-mauve/30 bg-acc-mauve/10 px-3.5 py-2">
+            <div className="text-[10.5px] uppercase tracking-wider text-acc-mauve mb-0.5">{agentName}</div>
+            <div className="text-[14px] italic text-acc-mauve/90">"{ex.agent}"</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="text-[12.5px] text-acc-sand/90 border-l-2 border-acc-sand/40 pl-3">
+        <span className="uppercase tracking-wider text-[10.5px] text-acc-sand/80 mr-1">AI Note:</span>
+        {ex.analysis}
+      </div>
+
+      <div className="rounded-md border border-acc-green/30 bg-acc-green/5 p-3">
+        <div className="text-[12px] font-semibold text-acc-green mb-1">✓ What You Should Say Instead</div>
+        <div className="text-[14px] italic text-acc-green/90 leading-snug">"{ex.correct}"</div>
+        <div className="text-[11.5px] text-text-secondary mt-2">
+          <span className="text-acc-green/80 font-medium">Why this works: </span>
+          Acknowledged → specific numbers → reframed the objection → ended on a differentiator the customer remembers.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CompetitionCheatSheet({ rows }: { rows: FbaRow[] }) {
+  return (
+    <div className="rounded-md border border-border bg-surface-2 p-4">
+      <div className="text-[13px] font-semibold mb-2">📊 Your Competition Cheat Sheet</div>
+      <div className="text-[11.5px] text-text-secondary mb-3">
+        Axis Max Life vs HDFC, SBI, ICICI — green = Axis Max Life wins on this dimension.
+      </div>
+      <div className="rounded-md border border-border overflow-hidden text-[12.5px]">
+        <div className="grid grid-cols-[1.4fr_1fr_1fr_1fr_1fr] bg-surface font-semibold text-text-secondary">
+          <div className="px-2.5 py-2">Feature</div>
+          <div className="px-2.5 py-2 text-acc-green">Axis Max Life</div>
+          <div className="px-2.5 py-2">HDFC</div>
+          <div className="px-2.5 py-2">SBI</div>
+          <div className="px-2.5 py-2">ICICI</div>
+        </div>
+        {rows.map((r, i) => (
+          <div key={i} className="grid grid-cols-[1.4fr_1fr_1fr_1fr_1fr] border-t border-border">
+            <div className="px-2.5 py-2 text-text-secondary">{r.feature}</div>
+            <div className="px-2.5 py-2 text-acc-green bg-acc-green/5">{r.axis}</div>
+            <div className="px-2.5 py-2">{r.hdfc}</div>
+            <div className="px-2.5 py-2">{r.sbi}</div>
+            <div className="px-2.5 py-2">{r.icici ?? "—"}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AltCheatSheet({ cheat }: { cheat: AltCheat }) {
+  return (
+    <div className="rounded-md border border-border bg-surface-2 p-4">
+      <div className="text-[13px] font-semibold mb-1">📊 {cheat.title}</div>
+      {cheat.intro && <div className="text-[11.5px] text-text-secondary mb-3">{cheat.intro}</div>}
+      <div className="rounded-md border border-border overflow-hidden">
+        {cheat.rows.map((r, i) => {
+          const tone =
+            r.tone === "green" ? "text-acc-green"
+            : r.tone === "amber" ? "text-acc-sand"
+            : r.tone === "mauve" ? "text-acc-mauve"
+            : "text-foreground/90";
+          return (
+            <div key={i} className="grid grid-cols-[200px_1fr] text-[12.5px] border-t border-border first:border-t-0">
+              <div className={`bg-surface px-3 py-2 font-medium ${tone}`}>{r.k}</div>
+              <div className="px-3 py-2 text-foreground/90">{r.v}</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TrainingScheduleTimeline({ items }: { items: NonNullable<AgentPlan["schedule"]> }) {
+  return (
+    <div className="rounded-md border border-acc-green/30 bg-acc-green/5 p-4">
+      <div className="text-[13px] font-semibold mb-3 text-foreground">📅 Your Training Schedule</div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-[12.5px]">
+        {items.map((s, i) => {
+          const tone =
+            s.tone === "green" ? "border-acc-green/40 bg-acc-green/10 text-acc-green"
+            : s.tone === "amber" ? "border-acc-sand/40 bg-acc-sand/10 text-acc-sand"
+            : "border-border bg-surface-2 text-text-secondary";
+          return (
+            <div key={i} className="rounded-md border border-border bg-surface p-3">
+              <div className={`text-[10.5px] uppercase tracking-wider px-1.5 py-0.5 rounded inline-block border ${tone}`}>
+                {s.day}
+              </div>
+              <div className="text-[12.5px] mt-1.5 text-foreground/90 leading-snug">{s.what}</div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="text-[11.5px] text-text-secondary italic mt-3">
+        Human intervention is the fallback, not the default.
+      </div>
+    </div>
+  );
+}
+
 function TrainingPlan({ a }: { a: Agent }) {
   const plan = AGENT_PLANS[a.id];
   if (!plan) return <GenericTraining r={{ name: a.name, empId: a.empId, tl: a.tl, cqi: a.pct } as any} />;
 
-  if (plan.kind === "star") {
-    return (
-      <div className="space-y-4">
-        <AgentInfoStrip a={a} plan={plan} />
-        <div className="rounded-md border border-acc-green/30 bg-acc-green/5 p-4">
-          <div className="flex items-center gap-2 text-acc-green text-[13px] font-semibold">
-            <TrendingUp className="size-4" /> STAR Recognition Summary
-          </div>
-          <div className="text-[13px] text-foreground/85 mt-2 leading-relaxed">{plan.coachNote}</div>
+  const coachTone =
+    plan.kind === "cap" ? "border-acc-mauve/40 bg-acc-mauve/10 border-l-4 border-l-acc-mauve"
+    : plan.kind === "escalated" ? "border-acc-sand/40 bg-acc-sand/10 border-l-4 border-l-acc-sand"
+    : "border-acc-green/30 bg-acc-green/5 border-l-4 border-l-acc-green";
+
+  const coachTitle =
+    plan.kind === "star" ? "STAR Recognition Summary"
+    : `Hi ${a.name.split(" ")[0]} — A Note From Your AI Coach`;
+
+  return (
+    <div className="space-y-4">
+      {/* SECTION 1 — Header */}
+      <TrainingPlanHeader a={a} plan={plan} />
+
+      {/* SECTION 2 — AI Coach Note */}
+      <div className={`rounded-md border ${coachTone} p-4`}>
+        <div className="flex items-center gap-2 text-[13px] font-semibold mb-1.5">
+          <GraduationCap className="size-4" /> {coachTitle}
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          {plan.starStats?.map((s) => (
+        <div className="text-[14px] text-foreground/90 leading-relaxed">{plan.coachNote}</div>
+      </div>
+
+      {/* STAR-only short path */}
+      {plan.kind === "star" && plan.starStats && (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+          {plan.starStats.map((s) => (
             <div key={s.label} className="rounded-md border border-border bg-surface-2 px-3 py-2">
               <div className="text-[10.5px] uppercase tracking-wider text-dim">{s.label}</div>
               <div className="text-[13px] font-medium mt-0.5">{s.value}</div>
             </div>
           ))}
         </div>
-        <div className="rounded-md border border-acc-green/30 bg-acc-green/5 p-3 text-[13px]">{plan.closing}</div>
-      </div>
-    );
-  }
+      )}
 
-  const coachTone = plan.kind === "cap" ? "border-acc-mauve/40 bg-acc-mauve/10 text-foreground"
-    : plan.kind === "escalated" ? "border-acc-sand/40 bg-acc-sand/10 text-foreground"
-    : "border-acc-green/30 bg-acc-green/5 text-foreground";
-
-  return (
-    <div className="space-y-4">
-      <AgentInfoStrip a={a} plan={plan} />
-
-      <div className={`rounded-md border ${coachTone} p-3 text-[13px] leading-relaxed`}>
-        <div className="text-[10.5px] uppercase tracking-wider text-dim mb-1">AI Coach Note</div>
-        {plan.coachNote}
-      </div>
-
+      {/* SECTIONS 3–4 — Call Excerpts */}
       {plan.excerpts?.map((ex, i) => (
-        <div key={i} className="space-y-2">
-          <div className="text-[11px] uppercase tracking-wider text-dim">
-            Call Excerpt {i + 1} — {ex.scenario}
-          </div>
-          <div className="rounded-md border border-border bg-surface-2 p-3 space-y-2">
-            <div>
-              <div className="text-[10.5px] uppercase tracking-wider text-acc-sand mb-0.5">Customer</div>
-              <div className="text-[13px] italic text-acc-sand/90">"{ex.customer}"</div>
-            </div>
-            <div>
-              <div className="text-[10.5px] uppercase tracking-wider text-acc-mauve mb-0.5">Agent</div>
-              <div className="text-[13px] italic text-acc-mauve/90">"{ex.agent}"</div>
-            </div>
-            <div className="border-t border-border pt-2">
-              <div className="text-[10.5px] uppercase tracking-wider text-dim mb-0.5">AI Analysis</div>
-              <div className="text-[12.5px] text-text-secondary">{ex.analysis}</div>
-            </div>
-          </div>
-          <div className="rounded-md border border-acc-green/30 bg-acc-green/5 p-3">
-            <div className="text-[10.5px] uppercase tracking-wider text-acc-green mb-1">Correct Response</div>
-            <div className="text-[13px] leading-snug">{ex.correct}</div>
-          </div>
-        </div>
+        <ChatExcerpt key={i} idx={i} ex={ex} agentName={a.name.split(" ")[0]} />
       ))}
 
-      {plan.fba && (
-        <div>
-          <div className="text-[11px] uppercase tracking-wider text-dim mb-2">
-            Cheat Sheet — Axis Max Life vs Competition (FBA)
-          </div>
-          <div className="rounded-md border border-border overflow-hidden text-[12px]">
-            <div className="grid grid-cols-[1.4fr_1fr_1fr_1fr_1fr] bg-surface-2 font-semibold text-text-secondary">
-              <div className="px-2.5 py-2">Feature</div>
-              <div className="px-2.5 py-2 text-acc-green">Axis Max Life</div>
-              <div className="px-2.5 py-2">HDFC</div>
-              <div className="px-2.5 py-2">SBI</div>
-              <div className="px-2.5 py-2">ICICI</div>
-            </div>
-            {plan.fba.map((r, i) => (
-              <div key={i} className="grid grid-cols-[1.4fr_1fr_1fr_1fr_1fr] border-t border-border">
-                <div className="px-2.5 py-2 text-text-secondary">{r.feature}</div>
-                <div className="px-2.5 py-2 text-acc-green">{r.axis}</div>
-                <div className="px-2.5 py-2">{r.hdfc}</div>
-                <div className="px-2.5 py-2">{r.sbi}</div>
-                <div className="px-2.5 py-2">{r.icici ?? "—"}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* SECTION 5 — Cheat Sheet (FBA for Priya, alt for others) */}
+      {plan.fba && <CompetitionCheatSheet rows={plan.fba} />}
+      {!plan.fba && plan.altCheat && <AltCheatSheet cheat={plan.altCheat} />}
 
-      {plan.schedule && (
-        <div>
-          <div className="text-[11px] uppercase tracking-wider text-dim mb-2">Training Schedule</div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[12.5px]">
-            {plan.schedule.map((s, i) => {
-              const tone = s.tone === "green" ? "border-acc-green/30 bg-acc-green/5 text-acc-green"
-                : s.tone === "amber" ? "border-acc-sand/40 bg-acc-sand/5 text-acc-sand"
-                : "border-border bg-surface-2 text-dim";
-              return (
-                <div key={i} className="rounded-md border border-border bg-surface-2 p-3">
-                  <div className={`text-[10.5px] uppercase tracking-wider px-1.5 py-0.5 rounded inline-block border ${tone}`}>
-                    {s.day}
-                  </div>
-                  <div className="text-[12.5px] mt-1.5 text-foreground/90">{s.what}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* SECTION 6 — Training Schedule */}
+      {plan.schedule && <TrainingScheduleTimeline items={plan.schedule} />}
 
+      {/* SECTION 7 — Self-Assessment */}
       {plan.quiz && (
-        <div>
-          <div className="text-[11px] uppercase tracking-wider text-dim mb-2">Self-Assessment</div>
+        <div className="rounded-md border border-border bg-surface-2 p-4">
+          <div className="text-[13px] font-semibold mb-3">📝 Test Yourself — 3 Questions</div>
           <div className="space-y-2">
             {plan.quiz.map((qa, i) => <QuizItem key={i} idx={i} q={qa.q} a={qa.a} />)}
           </div>
         </div>
       )}
 
-      <div className="rounded-md border border-acc-green/30 bg-acc-green/5 p-3 text-[13px]">
+      {/* SECTION 8 — Closing Note */}
+      <div className={`rounded-md border ${
+        plan.kind === "cap" ? "border-acc-mauve/40 bg-acc-mauve/10"
+        : plan.kind === "escalated" ? "border-acc-sand/40 bg-acc-sand/10"
+        : "border-acc-green/30 bg-acc-green/5"
+      } p-4 text-[14px] leading-relaxed`}>
         {plan.closing}
+      </div>
+
+      {/* Footer compliance */}
+      <div className="text-[11px] text-dim text-center pt-2 border-t border-border">
+        This training plan was generated by Silaris Agentic AI from analysis of 47 calls. 100% calls monitored. DPDP compliant.
       </div>
     </div>
   );
 }
+
 
 function AgentInfoStrip({ a, plan }: { a: Agent; plan: AgentPlan }) {
   return (
