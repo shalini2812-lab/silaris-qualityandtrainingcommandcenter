@@ -687,15 +687,18 @@ function synthHistory(r: RosterAgent): { title: string; date: string; status: st
 // ============================================================
 // Modal + per-agent content (reuses existing rich data)
 // ============================================================
-function Modal({ children, onClose, title }: { children: any; onClose: () => void; title: string }) {
+function Modal({
+  children, onClose, title, subtitle, wide = false,
+}: { children: any; onClose: () => void; title: string; subtitle?: string; wide?: boolean }) {
   return (
     <div className="fixed inset-0 z-[55] flex">
       <div className="flex-1 bg-background/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="w-full max-w-[720px] bg-card border-l border-border flex flex-col">
+      <div className={`w-full ${wide ? "max-w-[1180px]" : "max-w-[720px]"} bg-card border-l border-border flex flex-col animate-in slide-in-from-right duration-200`}>
         <header className="px-5 py-3.5 border-b border-border flex items-center justify-between">
           <div>
             <div className="text-[10.5px] uppercase tracking-[0.14em] text-dim">Silaris</div>
-            <div className="text-[16px] font-semibold">{title}</div>
+            <div className="text-[16px] font-semibold tracking-tight">{title}</div>
+            {subtitle && <div className="text-[11.5px] text-text-secondary mt-0.5">{subtitle}</div>}
           </div>
           <button onClick={onClose} className="size-8 grid place-items-center rounded-md hover:bg-secondary">
             <X className="size-4" />
@@ -704,7 +707,15 @@ function Modal({ children, onClose, title }: { children: any; onClose: () => voi
         <div className="flex-1 overflow-y-auto p-5">{children}</div>
         <footer className="px-5 py-3 border-t border-border text-[11px] text-dim flex items-center justify-between">
           <span>◉ Human-in-the-loop · April 2026</span>
-          <button onClick={onClose} className="text-[12px] px-3 py-1.5 rounded border border-border hover:border-acc-green/40">Close</button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => window.print()}
+              className="text-[12px] px-3 py-1.5 rounded border border-acc-green/40 bg-acc-green/10 text-acc-green hover:bg-acc-green/20"
+            >
+              Export PDF
+            </button>
+            <button onClick={onClose} className="text-[12px] px-3 py-1.5 rounded border border-border hover:border-acc-green/40">Close</button>
+          </div>
         </footer>
       </div>
     </div>
