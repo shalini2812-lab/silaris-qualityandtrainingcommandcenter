@@ -355,13 +355,14 @@ function CapPill({ s }: { s: CapStatus }) {
 type DetailTab = "overview" | "rebuttals" | "training";
 
 function AgentDetailPanel({
-  roster, keyAgent, onClose, onOpenFeedback, onOpenTraining,
+  roster, keyAgent, onClose, onOpenFeedback, onOpenTraining, onOpenEis,
 }: {
   roster: RosterAgent;
   keyAgent: Agent | null;
   onClose: () => void;
   onOpenFeedback: () => void;
   onOpenTraining: () => void;
+  onOpenEis: () => void;
 }) {
   const [tab, setTab] = useState<DetailTab>("overview");
 
@@ -441,6 +442,7 @@ function AgentDetailPanel({
               calls={calls}
               onOpenFeedback={onOpenFeedback}
               onOpenTraining={onOpenTraining}
+              onOpenEis={onOpenEis}
             />
           )}
           {tab === "rebuttals" && <RebuttalsTab roster={roster} keyAgent={keyAgent} />}
@@ -457,7 +459,7 @@ function AgentDetailPanel({
 
 // ---------- Overview tab ----------
 function OverviewTab({
-  roster, keyAgent, trend, dims, calls, onOpenFeedback, onOpenTraining,
+  roster, keyAgent, trend, dims, calls, onOpenFeedback, onOpenTraining, onOpenEis,
 }: {
   roster: RosterAgent;
   keyAgent: Agent | null;
@@ -466,6 +468,7 @@ function OverviewTab({
   calls: Agent["todaysCalls"];
   onOpenFeedback: () => void;
   onOpenTraining: () => void;
+  onOpenEis: () => void;
 }) {
   const pattern = keyAgent?.feedback.aiPattern
     ?? `${roster.name} sits at CQI ${roster.cqi.toFixed(1)}% (Cat ${roster.cat}). Trend is stable. ${roster.training !== "None" ? `Currently in ${roster.training} on "${roster.trainingNote ?? "skill refresh"}".` : "No active training need."}`;
