@@ -445,7 +445,7 @@ function AgentDetailPanel({
           {tab === "training" && (
             keyAgent
               ? <TrainingPlan a={keyAgent} />
-              : <GenericTraining r={roster} />
+              : <RosterTrainingPlan r={roster} />
           )}
         </div>
       </div>
