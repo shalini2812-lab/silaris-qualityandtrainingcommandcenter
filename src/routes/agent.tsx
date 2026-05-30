@@ -1037,43 +1037,29 @@ function FeedbackSheet({ roster, keyAgent }: { roster: RosterAgent; keyAgent: Ag
       </div>
 
       {/* Sections A-G */}
-      <div className="space-y-3">
-        {sections.map((sec) => {
-          const secScore = sec.params.reduce((a, p) => a + p.score, 0);
-          return (
-            <div key={sec.letter} className="rounded-md border border-border overflow-hidden">
-              <div className="flex items-center justify-between bg-surface-2 px-3 py-2 border-b border-border">
-                <div className="text-[13px] font-semibold">
-                  <span className="font-mono text-acc-blue mr-2">Section {sec.letter}</span>
-                  {sec.title}
-                </div>
-                <div className={`font-mono text-[13px] ${scoreClass(secScore, sec.max)}`}>{secScore} / {sec.max}</div>
-              </div>
-              <table className="w-full text-[12.5px]">
-                <thead className="text-dim text-[10.5px] uppercase tracking-wider">
-                  <tr className="border-b border-border">
-                    <th className="text-left py-1.5 px-3 w-10 font-medium">#</th>
-                    <th className="text-left py-1.5 px-3 font-medium">Parameter</th>
-                    <th className="text-right py-1.5 px-3 w-14 font-medium">Max</th>
-                    <th className="text-right py-1.5 px-3 w-16 font-medium">Score</th>
-                    <th className="text-left py-1.5 px-3 font-medium">Remarks</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sec.params.map((p) => (
-                    <tr key={p.n} className="border-t border-border/60">
-                      <td className="py-1.5 px-3 font-mono text-dim">{p.n}</td>
-                      <td className="py-1.5 px-3">{p.name}</td>
-                      <td className="py-1.5 px-3 text-right font-mono text-text-secondary">{p.max}</td>
-                      <td className={`py-1.5 px-3 text-right font-mono ${scoreClass(p.score, p.max)}`}>{p.score}</td>
-                      <td className="py-1.5 px-3 text-text-secondary">{p.remarks}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          );
-        })}
+      <div className="rounded-md border border-border overflow-hidden">
+        <table className="w-full text-[12.5px]">
+          <thead className="bg-surface-2 text-dim text-[10.5px] uppercase tracking-wider">
+            <tr>
+              <th className="text-left py-2 px-3 w-12 font-medium">#</th>
+              <th className="text-left py-2 px-3 font-medium">Parameter</th>
+              <th className="text-right py-2 px-3 w-14 font-medium">Max</th>
+              <th className="text-right py-2 px-3 w-16 font-medium">Score</th>
+              <th className="text-left py-2 px-3 font-medium">Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sections.map((sec) => (
+              <tr key={sec.letter} className="border-t border-border/60 align-top">
+                <td className="py-2 px-3 font-mono text-acc-blue font-semibold">Sec {sec.letter}</td>
+                <td className="py-2 px-3 font-medium">{sec.title}</td>
+                <td className="py-2 px-3 text-right font-mono text-text-secondary">{sec.max}</td>
+                <td className={`py-2 px-3 text-right font-mono font-semibold ${scoreClass(sec.score, sec.max)}`}>{sec.score}</td>
+                <td className="py-2 px-3 text-text-secondary leading-snug">{sec.remark}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {/* Grand Total */}
