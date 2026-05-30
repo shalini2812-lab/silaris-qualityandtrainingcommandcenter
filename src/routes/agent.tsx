@@ -1079,7 +1079,7 @@ function FeedbackSheet({ roster, keyAgent }: { roster: RosterAgent; keyAgent: Ag
           </div>
           <div className="flex flex-col items-center justify-center">
             <div className="text-[10.5px] uppercase tracking-wider text-dim mb-1">Rating</div>
-            <CatBadge cat={rating} />
+            <Badge tone={rating.tone}>{rating.label}</Badge>
           </div>
         </div>
       </div>
