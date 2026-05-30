@@ -770,80 +770,197 @@ function GenericTraining({ r }: { r: RosterAgent }) {
 // Works for both rich keyAgent records and synthetic roster rows.
 // ============================================================
 
-type SheetParam = { n: number; name: string; max: number; score: number; remarks: string };
-type SheetSection = { letter: string; title: string; max: number; params: SheetParam[] };
+type SheetSectionRow = { score: number; remark: string };
+type SheetSection = { letter: string; title: string; max: number; score: number; remark: string };
 
-const SECTION_TEMPLATE: { letter: string; title: string; max: number; params: { name: string; max: number; weight: number }[] }[] = [
-  { letter: "A", title: "Call Opening & Greeting", max: 10, params: [
-      { name: "Self-intro + IRDA disclosure within 10s", max: 6, weight: 1 },
-      { name: "Tone, energy, professional greeting", max: 4, weight: 1 },
-    ] },
-  { letter: "B", title: "Need Discovery & Profiling", max: 15, params: [
-      { name: "Open-ended discovery questions asked", max: 8, weight: 1 },
-      { name: "Customer need confirmed & paraphrased", max: 7, weight: 1 },
-    ] },
-  { letter: "C", title: "Product Pitch & Knowledge", max: 20, params: [
-      { name: "Accurate product features & benefits", max: 10, weight: 1 },
-      { name: "Riders, fund options, charges explained", max: 10, weight: 1 },
-    ] },
-  { letter: "D", title: "Objection Handling", max: 15, params: [
-      { name: "Acknowledged objection without dismissal", max: 7, weight: 1 },
-      { name: "Used correct rebuttal / competition pivot", max: 8, weight: 1 },
-    ] },
-  { letter: "E", title: "Closing Technique", max: 15, params: [
-      { name: "Summary of 3 benefits + urgency", max: 8, weight: 1 },
-      { name: "Asked for explicit commitment / next step", max: 7, weight: 1 },
-    ] },
-  { letter: "F", title: "Communication & Soft Skills", max: 15, params: [
-      { name: "Active listening, no dead air > 5s", max: 8, weight: 1 },
-      { name: "Empathy, clarity, pace, language", max: 7, weight: 1 },
-    ] },
-  { letter: "G", title: "Compliance & Documentation", max: 10, params: [
-      { name: "T&C disclosure complete & timely", max: 6, weight: 1 },
-      { name: "Disposition / call-back scheduled correctly", max: 4, weight: 1 },
-    ] },
+const SECTION_TEMPLATE: { letter: string; title: string; max: number }[] = [
+  { letter: "A", title: "Call Opening",         max: 10 },
+  { letter: "B", title: "Product Presentation", max: 20 },
+  { letter: "C", title: "Queries & Objections", max: 12 },
+  { letter: "D", title: "Customer Busy",        max: 7  },
+  { letter: "E", title: "Not Interested",       max: 9  },
+  { letter: "F", title: "Call Closing",         max: 10 },
+  { letter: "G", title: "Compliance",           max: 15 },
 ];
 
-function buildSheet(roster: RosterAgent, keyAgent: Agent | null): SheetSection[] {
-  // Map by section letter → ratio derived from the closest matching dimension on the agent.
-  // Fall back to overall CQI ratio.
+const SHEET_TOTAL_MAX = SECTION_TEMPLATE.reduce((s, x) => s + x.max, 0); // 83
+
+type AgentSheet = {
+  pattern: string;
+  sections: SheetSectionRow[]; // length = 7, order A..G
+  strengths: string[];
+  improvements: string[];
+  actionPlan: string[];
+  action: string; // top-right amber box
+};
+
+const AGENT_SHEETS: Record<string, AgentSheet> = {
+  priya: {
+    pattern: "Competition comparison queries — unable to articulate Axis Max Life advantages vs HDFC / SBI. Occurred in 4 of 5 calls today and 31 of 47 calls this fortnight (66%).",
+    sections: [
+      { score: 9,  remark: "Warm and natural greeting. Clear intro. Purpose stated confidently." },
+      { score: 13, remark: "⚠ Missed rider benefits. 🔴 Charges not explained clearly. T&C incomplete." },
+      { score: 6,  remark: "🔴 PATTERN: Unable to handle competition comparison — 4 of 5 calls. Gets flustered with HDFC / SBI." },
+      { score: 7,  remark: "Polite, immediate apology. Good callback scheduling." },
+      { score: 8,  remark: "Graceful handling. Forgot to share callback number." },
+      { score: 9,  remark: "Good closing tone. Brief summary — could be more thorough." },
+      { score: 14, remark: "No DND breach. Minor overstatement on returns." },
+    ],
+    strengths: ["Excellent greeting", "Language clarity", "Callback handling", "Compliance instincts"],
+    improvements: ["Competition comparison (Sec C) — critical gap", "Charges communication", "Proactive re-explanation"],
+    actionPlan: [
+      "Competition comparison module delivered to desktop / email",
+      "Charges transparency training",
+      "STT monitoring from Day 2",
+      "Day 5 re-assessment — if no improvement, Trainer + TL notified",
+    ],
+    action: "Competition module deployed. Day 5 assessment due tomorrow — TL Pooja S. to validate live calls.",
+  },
+  rahul: {
+    pattern: "T&C disclosure timing — mentions T&C at 1:42 on average instead of within first 30 seconds as mandated.",
+    sections: [
+      { score: 8,  remark: "Good but slightly rushed intro." },
+      { score: 11, remark: "⚠ T&C at 1:42 instead of within 30 sec. Premium before compliance." },
+      { score: 8,  remark: "Adequate — handles most queries but hesitates on technical questions." },
+      { score: 7,  remark: "Good callback handling." },
+      { score: 7,  remark: "Professional but could be warmer." },
+      { score: 8,  remark: "Closing rushed — last 30 seconds feel hurried." },
+      { score: 12, remark: "T&C timing is a compliance risk." },
+    ],
+    strengths: ["Professional tone", "Empathetic", "Product knowledge adequate"],
+    improvements: ["T&C timing (compliance risk)", "Closing rushed", "Customer understanding check"],
+    actionPlan: [
+      "T&C timing module completed",
+      "Assessment pending — 5 questions",
+      "STT monitoring active",
+    ],
+    action: "Assessment due today. QA Manager to confirm 5/5 pass before exiting training.",
+  },
+  anita: {
+    pattern: "STAR performer — consistent Category A across all 4 weeks. No gaps. Role model.",
+    sections: [
+      { score: 10, remark: "Perfect — warm, clear, permission asked with pause." },
+      { score: 18, remark: "Thorough product explanation. Charges proactive. T&C within 15 seconds." },
+      { score: 11, remark: "Handled HDFC objection with data. Used claim settlement and FMC." },
+      { score: 7,  remark: "Empathetic and thorough." },
+      { score: 9,  remark: "Graceful, shared callback, maintained tone." },
+      { score: 10, remark: "Summarised all benefits. Created urgency. Customer committed." },
+      { score: 14, remark: "Clean. Near-perfect compliance." },
+    ],
+    strengths: ["Everything — opening, knowledge, competition handling, compliance, closing"],
+    improvements: ["None — maintain consistency"],
+    actionPlan: [
+      "No training needed",
+      "Nominated for STAR recognition",
+      "Available for peer coaching of Priya & Sneha",
+    ],
+    action: "No human intervention needed. Capture 3 calls as gold-standard training assets.",
+  },
+  deepak: {
+    pattern: "FATAL compliance breaches — unauthorized fee waiver promise (3rd offense) + mis-selling language. Suspended.",
+    sections: [
+      { score: 7,  remark: "Adequate greeting but lacks energy." },
+      { score: 9,  remark: "🔴 Cannot explain riders. Gave wrong fund count. Dead air 12 sec." },
+      { score: 4,  remark: "🔴 Panics under questions. Says 'ek minute main check karta hoon.'" },
+      { score: 5,  remark: "Forgot to confirm callback time." },
+      { score: 6,  remark: "Abrupt — customer felt dismissed." },
+      { score: 5,  remark: "No summary. No next steps. Just 'theek hai sir.'" },
+      { score: 7,  remark: "🔴 FATAL: Unauthorized fee waiver promise. Pressure selling detected. 3rd offense." },
+    ],
+    strengths: ["Shows up consistently (that's about it)"],
+    improvements: [
+      "CRITICAL — unauthorized promises",
+      "Mis-selling language",
+      "Dead air",
+      "Pressure selling",
+      "Product knowledge",
+    ],
+    actionPlan: [
+      "Suspended from outbound immediately",
+      "Mandatory compliance refresher",
+      "CAP-2 active — dual approval by Manager + QA Head",
+      "Re-certification required before reinstatement (score 85%+)",
+    ],
+    action: "🚨 CAP-2 ACTIVE. Outbound suspended. Manager + QA Head must co-sign re-certification before reinstatement.",
+  },
+  sneha: {
+    pattern: "Closing technique weak — doesn't summarize or create urgency. BUT improving — moved C → B in 4 weeks!",
+    sections: [
+      { score: 9,  remark: "Warm and confident opening." },
+      { score: 14, remark: "Good product knowledge. Charges explained." },
+      { score: 8,  remark: "Handles most objections. Competition handling improved." },
+      { score: 7,  remark: "Empathetic callback handling." },
+      { score: 7,  remark: "Professional. Could share more contact options." },
+      { score: 7,  remark: "⚠ Customer said 'sochta hoon' — didn't attempt retention. No urgency." },
+      { score: 13, remark: "Clean. No flags." },
+    ],
+    strengths: ["Strong improvement trajectory (+5 pts in 4 weeks)", "Product knowledge", "Empathetic"],
+    improvements: ["Closing — no urgency created", "No benefit restatement", "No retention attempt"],
+    actionPlan: [
+      "Closing training completed",
+      "Score improved 63 → 68",
+      "Continue monitoring",
+      "Target 75+ next week",
+    ],
+    action: "On track for Cat A. Maintain weekly STT review; queue for STAR shortlist if CQI ≥ 75 next week.",
+  },
+  manish: {
+    pattern: "Product knowledge gap — cannot explain riders, fund options, plan variants. Stagnant at 58 – 60 for 4 weeks.",
+    sections: [
+      { score: 8,  remark: "Professional greeting." },
+      { score: 8,  remark: "🔴 Cannot explain riders (customer asked 3 times). Wrong fund count. Dead air 9 sec." },
+      { score: 5,  remark: "Panics when asked product questions. Long pauses." },
+      { score: 6,  remark: "Adequate." },
+      { score: 6,  remark: "Customer felt the agent didn't know the product." },
+      { score: 6,  remark: "Weak closing. No confidence." },
+      { score: 11, remark: "No fatal but lacks conviction in statements." },
+    ],
+    strengths: ["Professional greeting", "Empathetic tone"],
+    improvements: ["CRITICAL — product knowledge", "Active listening", "Dead air", "Confidence"],
+    actionPlan: [
+      "AI coaching failed after 5 days",
+      "Escalated to Trainer + TL",
+      "Human-led product knowledge session scheduled",
+      "CAP-1 initiated",
+    ],
+    action: "AI coaching exhausted. Schedule 2-week classroom + TL shadowing on product knowledge this week.",
+  },
+};
+
+function buildSheet(roster: RosterAgent, keyAgent: Agent | null): { sections: SheetSection[]; override?: AgentSheet } {
+  const override = roster.keyId ? AGENT_SHEETS[roster.keyId] : undefined;
+  if (override) {
+    const sections: SheetSection[] = SECTION_TEMPLATE.map((s, i) => ({
+      letter: s.letter,
+      title: s.title,
+      max: s.max,
+      score: override.sections[i].score,
+      remark: override.sections[i].remark,
+    }));
+    return { sections, override };
+  }
+
+  // Synthesise from CQI + dimensions for the other 14 roster rows
   const baseRatio = Math.max(0.4, Math.min(1, roster.cqi / 100));
   const dimsByCode: Record<string, number> = {};
-  if (keyAgent) {
-    for (const d of keyAgent.dimensions) {
-      dimsByCode[d.code] = d.score / d.max;
-    }
-  }
-  const sectionToDim: Record<string, string> = {
-    A: "D1", B: "D2", C: "D2", D: "D3", E: "D5", F: "D4", G: "D6",
-  };
-  let n = 0;
-  return SECTION_TEMPLATE.map((s) => {
-    const dimRatio = dimsByCode[sectionToDim[s.letter]] ?? baseRatio;
-    // Slight per-section jitter so all 7 sections don't look identical
-    const jitter = ({ A: 0.02, B: -0.04, C: -0.06, D: -0.10, E: -0.05, F: 0, G: 0.06 } as Record<string, number>)[s.letter];
-    const sectionRatio = Math.max(0.35, Math.min(1, dimRatio + jitter));
-    const params: SheetParam[] = s.params.map((p) => {
-      n += 1;
-      const score = Math.max(1, Math.min(p.max, Math.round(p.max * sectionRatio)));
-      return {
-        n,
-        name: p.name,
-        max: p.max,
-        score,
-        remarks: remarkFor(p.max, score),
-      };
-    });
-    return { letter: s.letter, title: s.title, max: s.max, params };
+  if (keyAgent) for (const d of keyAgent.dimensions) dimsByCode[d.code] = d.score / d.max;
+  const sectionToDim: Record<string, string> = { A: "D1", B: "D2", C: "D3", D: "D4", E: "D4", F: "D5", G: "D6" };
+  const jitterMap: Record<string, number> = { A: 0.04, B: -0.03, C: -0.08, D: 0.05, E: -0.02, F: -0.04, G: 0.06 };
+
+  const sections: SheetSection[] = SECTION_TEMPLATE.map((s) => {
+    const ratio = Math.max(0.35, Math.min(1, (dimsByCode[sectionToDim[s.letter]] ?? baseRatio) + jitterMap[s.letter]));
+    const score = Math.max(1, Math.min(s.max, Math.round(s.max * ratio)));
+    return { letter: s.letter, title: s.title, max: s.max, score, remark: remarkFor(s.max, score) };
   });
+  return { sections };
 }
 
 function remarkFor(max: number, score: number): string {
   const pct = score / max;
-  if (pct >= 0.9) return "Consistent on this parameter";
-  if (pct >= 0.75) return "Mostly on script — minor coaching";
-  if (pct >= 0.6) return "Inconsistent — targeted drill recommended";
-  return "Gap — priority for AI coaching";
+  if (pct >= 0.9) return "Consistent on this parameter.";
+  if (pct >= 0.75) return "Mostly on script — minor coaching.";
+  if (pct >= 0.6) return "Inconsistent — targeted drill recommended.";
+  return "Gap — priority for AI coaching.";
 }
 
 function scoreClass(score: number, max: number): string {
@@ -853,36 +970,46 @@ function scoreClass(score: number, max: number): string {
   return "text-acc-mauve";
 }
 
+function ratingFor(pct: number): { label: string; tone: "green" | "blue" | "sand" | "mauve" } {
+  if (pct >= 90) return { label: "EXCELLENT", tone: "green" };
+  if (pct >= 75) return { label: "GOOD", tone: "blue" };
+  if (pct >= 60) return { label: "NEEDS IMPROVEMENT", tone: "sand" };
+  return { label: "CRITICAL", tone: "mauve" };
+}
+
 function FeedbackSheet({ roster, keyAgent }: { roster: RosterAgent; keyAgent: Agent | null }) {
-  const sections = buildSheet(roster, keyAgent);
-  const total = sections.reduce((s, sec) => s + sec.params.reduce((a, p) => a + p.score, 0), 0);
-  const out = sections.reduce((s, sec) => s + sec.max, 0);
-  const pct = Math.round((total / out) * 100);
-  const rating: "A" | "B" | "C" = pct >= 90 ? "A" : pct >= 85 ? "B" : "C";
+  const { sections, override } = buildSheet(roster, keyAgent);
+  const total = sections.reduce((a, s) => a + s.score, 0);
+  const out = SHEET_TOTAL_MAX;
+  const pct = Math.round((total / out) * 1000) / 10; // 1 decimal
+  const rating = ratingFor(pct);
 
-  const aiPattern = keyAgent?.feedback.aiPattern
-    ?? `AI analyzed ${30 + roster.rank} calls over the last 14 days. ${roster.name} sits at CQI ${roster.cqi.toFixed(1)}% (Cat ${roster.cat}). Pattern: ${roster.cat === "C" ? "consistent gaps in objection handling and closing — AI coaching deployed." : roster.cat === "B" ? "on-track with isolated dips on competition pivots — targeted micro-coaching active." : "high consistency across all dimensions — maintain monitoring cadence."}`;
+  const aiPattern = override?.pattern
+    ?? keyAgent?.feedback.aiPattern
+    ?? `AI analysed ${30 + roster.rank} calls over the last 14 days. ${roster.name} sits at CQI ${roster.cqi.toFixed(1)}% (Cat ${roster.cat}). Pattern: ${roster.cat === "C" ? "consistent gaps in objection handling and closing — AI coaching deployed." : roster.cat === "B" ? "on-track with isolated dips on competition pivots — targeted micro-coaching active." : "high consistency across all dimensions — maintain monitoring cadence."}`;
 
-  const strengths = keyAgent?.feedback.strengths ?? [
+  const strengths = override?.strengths ?? keyAgent?.feedback.strengths ?? [
     "Compliance disclosure delivered on time",
     "Professional tone maintained throughout",
     "Customer rapport built within first 30 seconds",
   ];
-  const improvements = keyAgent?.feedback.improvements ?? [
+  const improvements = override?.improvements ?? keyAgent?.feedback.improvements ?? [
     "Strengthen competition counter-pivots (HDFC / SBI)",
     "Summarize 3 benefits before closing",
     "Ask explicit commitment question at close",
   ];
-  const actionPlan = keyAgent?.feedback.actionPlan
-    ?? `AI micro-coaching scheduled over next 5 days. STT will re-score daily. Day 5 assessment with ${roster.tl}. Escalate to Trainer + TL if no movement.`;
+  const actionPlan: string[] = override?.actionPlan ?? (keyAgent?.feedback.actionPlan ? [keyAgent.feedback.actionPlan] : [
+    `AI micro-coaching scheduled over next 5 days. STT will re-score daily. Day 5 assessment with ${roster.tl}. Escalate to Trainer + TL if no movement.`,
+  ]);
 
-  const actionRequired = roster.cap !== "None"
-    ? `${roster.cap} in effect — TL + QA Manager must co-sign weekly review until exit criteria are met.`
-    : roster.training === "Escalated"
-      ? "AI coaching exhausted — Trainer + TL classroom intervention required this week."
-      : roster.cat === "C"
-        ? "Enrol agent in next AI coaching cohort; QA Manager to review Day 5 assessment outcome."
-        : "Continue STT live monitoring. No human escalation required at this stage.";
+  const actionRequired = override?.action
+    ?? (roster.cap !== "None"
+      ? `${roster.cap} in effect — TL + QA Manager must co-sign weekly review until exit criteria are met.`
+      : roster.training === "Escalated"
+        ? "AI coaching exhausted — Trainer + TL classroom intervention required this week."
+        : roster.cat === "C"
+          ? "Enrol agent in next AI coaching cohort; QA Manager to review Day 5 assessment outcome."
+          : "Continue STT live monitoring. No human escalation required at this stage.");
 
   return (
     <div className="space-y-5">
@@ -910,43 +1037,29 @@ function FeedbackSheet({ roster, keyAgent }: { roster: RosterAgent; keyAgent: Ag
       </div>
 
       {/* Sections A-G */}
-      <div className="space-y-3">
-        {sections.map((sec) => {
-          const secScore = sec.params.reduce((a, p) => a + p.score, 0);
-          return (
-            <div key={sec.letter} className="rounded-md border border-border overflow-hidden">
-              <div className="flex items-center justify-between bg-surface-2 px-3 py-2 border-b border-border">
-                <div className="text-[13px] font-semibold">
-                  <span className="font-mono text-acc-blue mr-2">Section {sec.letter}</span>
-                  {sec.title}
-                </div>
-                <div className={`font-mono text-[13px] ${scoreClass(secScore, sec.max)}`}>{secScore} / {sec.max}</div>
-              </div>
-              <table className="w-full text-[12.5px]">
-                <thead className="text-dim text-[10.5px] uppercase tracking-wider">
-                  <tr className="border-b border-border">
-                    <th className="text-left py-1.5 px-3 w-10 font-medium">#</th>
-                    <th className="text-left py-1.5 px-3 font-medium">Parameter</th>
-                    <th className="text-right py-1.5 px-3 w-14 font-medium">Max</th>
-                    <th className="text-right py-1.5 px-3 w-16 font-medium">Score</th>
-                    <th className="text-left py-1.5 px-3 font-medium">Remarks</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sec.params.map((p) => (
-                    <tr key={p.n} className="border-t border-border/60">
-                      <td className="py-1.5 px-3 font-mono text-dim">{p.n}</td>
-                      <td className="py-1.5 px-3">{p.name}</td>
-                      <td className="py-1.5 px-3 text-right font-mono text-text-secondary">{p.max}</td>
-                      <td className={`py-1.5 px-3 text-right font-mono ${scoreClass(p.score, p.max)}`}>{p.score}</td>
-                      <td className="py-1.5 px-3 text-text-secondary">{p.remarks}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          );
-        })}
+      <div className="rounded-md border border-border overflow-hidden">
+        <table className="w-full text-[12.5px]">
+          <thead className="bg-surface-2 text-dim text-[10.5px] uppercase tracking-wider">
+            <tr>
+              <th className="text-left py-2 px-3 w-12 font-medium">#</th>
+              <th className="text-left py-2 px-3 font-medium">Parameter</th>
+              <th className="text-right py-2 px-3 w-14 font-medium">Max</th>
+              <th className="text-right py-2 px-3 w-16 font-medium">Score</th>
+              <th className="text-left py-2 px-3 font-medium">Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sections.map((sec) => (
+              <tr key={sec.letter} className="border-t border-border/60 align-top">
+                <td className="py-2 px-3 font-mono text-acc-blue font-semibold">Sec {sec.letter}</td>
+                <td className="py-2 px-3 font-medium">{sec.title}</td>
+                <td className="py-2 px-3 text-right font-mono text-text-secondary">{sec.max}</td>
+                <td className={`py-2 px-3 text-right font-mono font-semibold ${scoreClass(sec.score, sec.max)}`}>{sec.score}</td>
+                <td className="py-2 px-3 text-text-secondary leading-snug">{sec.remark}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {/* Grand Total */}
@@ -966,7 +1079,7 @@ function FeedbackSheet({ roster, keyAgent }: { roster: RosterAgent; keyAgent: Ag
           </div>
           <div className="flex flex-col items-center justify-center">
             <div className="text-[10.5px] uppercase tracking-wider text-dim mb-1">Rating</div>
-            <CatBadge cat={rating} />
+            <Badge tone={rating.tone}>{rating.label}</Badge>
           </div>
         </div>
       </div>
@@ -991,10 +1104,7 @@ function FeedbackSheet({ roster, keyAgent }: { roster: RosterAgent; keyAgent: Ag
       <div className="rounded-md border border-acc-green/30 bg-acc-green/[0.06] p-4">
         <div className="text-[11px] uppercase tracking-wider text-acc-green mb-2">AI Action Plan</div>
         <ol className="text-[13px] space-y-1.5 list-decimal pl-5">
-          <li>{actionPlan}</li>
-          <li>STT live-monitors every call for the next 5 working days; deviation triggers real-time nudge.</li>
-          <li>Day 5 assessment auto-scheduled — pre vs post CQI delta reported to TL ({roster.tl}) and QA Manager.</li>
-          <li>If no improvement after 5 days, escalate to classroom training with Trainer + TL shadowing.</li>
+          {actionPlan.map((step, i) => <li key={i}>{step}</li>)}
         </ol>
       </div>
 
