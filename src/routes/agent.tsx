@@ -1594,3 +1594,428 @@ function Meta({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+// ============================================================
+// PART D — Everyday Improvement Sheet (EIS)
+// ============================================================
+type EisDim = { code: string; name: string; max: number; score: number; trend: "up" | "down" | "flat"; delta?: number; obs: string };
+type EisSpotlight = { time: string; customer: string; agent: string; aiNote: string; correct: string; why: string };
+type EisData = {
+  date: string;
+  shift: string;
+  callsToday: number;
+  callsWeek: number;
+  cqiTodayPct: number;
+  cqiTodayScore: number;
+  cqiTodayDelta: number;
+  weeklyAvgPct: number;
+  dims: EisDim[];
+  worked: string[];
+  needs: string[];
+  spotlight: EisSpotlight;
+  risk: { tone: "fatal" | "minor" | "none"; text: string };
+  tomorrow: string[];
+  trend: { d: string; v: number }[];
+};
+
+const AGENT_EIS: Record<string, EisData> = {
+  priya: {
+    date: "28 April 2026", shift: "Morning (09:00–18:00)", callsToday: 21, callsWeek: 102,
+    cqiTodayScore: 68, cqiTodayPct: 81.9, cqiTodayDelta: 2.0, weeklyAvgPct: 79.5,
+    dims: [
+      { code: "D1", name: "Communication",       max: 10, score: 9,  trend: "up",   delta: 0.5, obs: "Warm opening in all 21 calls." },
+      { code: "D2", name: "Product Knowledge",   max: 20, score: 14, trend: "up",   delta: 1.0, obs: "Charges explained better in 3 calls. Still missed in 5." },
+      { code: "D3", name: "Objection Handling",  max: 12, score: 7,  trend: "up",   delta: 1.0, obs: "Used claim settlement ratio in 2 calls — first time this week! HDFC comparison still weak." },
+      { code: "D4", name: "Customer Handling",   max: 16, score: 15, trend: "flat",            obs: "Consistent and empathetic." },
+      { code: "D5", name: "Closing",             max: 10, score: 9,  trend: "flat",            obs: "Benefit restatement in 14 of 21 calls." },
+      { code: "D6", name: "Compliance",          max: 15, score: 14, trend: "flat",            obs: "Clean." },
+    ],
+    worked: [
+      "Used claim settlement ratio in 2 calls for first time this week (10:42, 13:18).",
+      "Charges disclosure rate improved 42% → 76% vs last week.",
+      "Opening remains floor-best — warm, compliant, recording disclosure within 8s.",
+    ],
+    needs: [
+      "Competition objection still #1 gap — hesitated in 3 of 5 HDFC mentions.",
+      "FMC reducing-rate advantage not mentioned once today.",
+      "Charges still missed entirely in 5 calls.",
+    ],
+    spotlight: {
+      time: "14:22",
+      customer: "HDFC ka online plan mein charges nahi hain. Aapke mein hain kya?",
+      agent: "Sir, hamare mein charges hain thode se… main details bhej dungi… (8 sec pause)",
+      aiNote: "Hesitation + 8s dead air. Customer interpreted silence as 'doesn't know.' Missed both the killer facts (claim settlement + reducing FMC).",
+      correct: "Amit ji, bahut achha sawaal! Hamare admin charge ₹500/month — 10 saal tak — maturity pe wapas. Net loss zero. Claim settlement 98.7% (HDFC se higher), aur FMC 1.35% → 0.90% reduce hota hai.",
+      why: "Three killer facts together — refundable charges, higher claim settlement, reducing FMC. Converts the objection into proof of superiority.",
+    },
+    risk: { tone: "minor", text: 'Minor — said "returns guaranteed hain" on ULIP at 11:48; self-corrected within 4 seconds. Flagged but not fatal.' },
+    tomorrow: [
+      "Use BOTH killer facts together — claim settlement AND reducing FMC — every HDFC / SBI mention.",
+      "Charges disclosed in the first 2 minutes of every call.",
+      'Replace "main check karti hoon" with confident data — you have the numbers now.',
+    ],
+    trend: [{ d: "Mon", v: 63 }, { d: "Tue", v: 65 }, { d: "Wed", v: 64 }, { d: "Thu", v: 66 }, { d: "Fri", v: 68 }],
+  },
+  rahul: {
+    date: "28 April 2026", shift: "Morning (09:00–18:00)", callsToday: 18, callsWeek: 89,
+    cqiTodayScore: 71, cqiTodayPct: 85.5, cqiTodayDelta: 1.0, weeklyAvgPct: 84.2,
+    dims: [
+      { code: "D1", name: "Communication",       max: 10, score: 9,  trend: "flat",            obs: "Clear, confident voice across all 18 calls." },
+      { code: "D2", name: "Product Knowledge",   max: 20, score: 17, trend: "up",   delta: 0.5, obs: "Product explanation clear in 15 of 18 calls." },
+      { code: "D3", name: "Objection Handling",  max: 12, score: 10, trend: "flat",            obs: "Strong rebuttal patterns, factual." },
+      { code: "D4", name: "Customer Handling",   max: 16, score: 13, trend: "flat",            obs: "Callback scheduling strong; rapport solid." },
+      { code: "D5", name: "Closing",             max: 10, score: 7,  trend: "down", delta: -0.5, obs: "Closing rushed in 4 calls — no benefit restatement." },
+      { code: "D6", name: "Compliance",          max: 15, score: 15, trend: "up",   delta: 0.5, obs: "Clean — but T&C timing remains a concern." },
+    ],
+    worked: [
+      "Product explanation clear in 15 of 18 calls.",
+      "Empathetic tone maintained even with skeptical customers.",
+      "Callback scheduling strong — 6 confirmed callbacks today.",
+    ],
+    needs: [
+      "T&C disclosure at 1:42 in 3 calls today — well past the 30s compliance threshold.",
+      "Closing rushed in 4 calls — no benefit restatement.",
+      "Did not confirm customer understanding before ending pitch.",
+    ],
+    spotlight: {
+      time: "11:15",
+      customer: "Yeh toh pehle batana chahiye tha — charges kab bataye?",
+      agent: "Sir bas batane hi wala tha — admin charge ₹500…",
+      aiNote: "Customer raised this at 2:30 because premium discussion started at 0:15 but T&C only came at 1:42. The whole objection was avoidable.",
+      correct: "Front-load T&C: 'Sir, premium discuss karne se pehle 30 second mein structure bata deti hoon — life cover, charges, free-look. Phir hum aapke liye plan customize karenge.'",
+      why: "30-second T&C eliminates the 'aapne pehle nahi bataya' objection entirely and protects compliance score.",
+    },
+    risk: { tone: "minor", text: "T&C timing is a compliance concern — not fatal but flagged. 3 calls today exceeded the 30-second threshold." },
+    tomorrow: [
+      "T&C within 30 seconds — every call, no exceptions.",
+      "Slow down closing — last 60 seconds must include benefit restatement.",
+      "Confirm understanding before moving from pitch to close.",
+    ],
+    trend: [{ d: "Mon", v: 68 }, { d: "Tue", v: 70 }, { d: "Wed", v: 69 }, { d: "Thu", v: 70 }, { d: "Fri", v: 71 }],
+  },
+  anita: {
+    date: "28 April 2026", shift: "Morning (09:00–18:00)", callsToday: 23, callsWeek: 114,
+    cqiTodayScore: 78, cqiTodayPct: 94.0, cqiTodayDelta: 0, weeklyAvgPct: 93.8,
+    dims: [
+      { code: "D1", name: "Communication",       max: 10, score: 10, trend: "flat", obs: "Perfect opening — all 23 calls." },
+      { code: "D2", name: "Product Knowledge",   max: 20, score: 19, trend: "flat", obs: "Encyclopedic; rider explanations consistently clear." },
+      { code: "D3", name: "Objection Handling",  max: 12, score: 12, trend: "flat", obs: "Handled HDFC objection with data in 3 calls — textbook." },
+      { code: "D4", name: "Customer Handling",   max: 16, score: 14, trend: "flat", obs: "Empathetic, patient, customer-led." },
+      { code: "D5", name: "Closing",             max: 10, score: 9,  trend: "flat", obs: "Benefit restatement + urgency consistently used." },
+      { code: "D6", name: "Compliance",          max: 15, score: 14, trend: "flat", obs: "T&C within 15 seconds every call." },
+    ],
+    worked: [
+      "Perfect opening across all 23 calls.",
+      "Handled HDFC objection with data (not deflection) in 3 calls.",
+      "T&C within 15 seconds every call — exemplary compliance.",
+    ],
+    needs: ["None — maintain this consistency. You're the benchmark."],
+    spotlight: {
+      time: "10:30",
+      customer: "Sir last year jaisa fee waiver de denge?",
+      agent: "Sir, waiver ke liye manager approval chahiye — main check karke 2 ghante mein confirm karti hoon. Abhi ke liye early renewal pe 7% loyalty discount already applicable hai.",
+      aiNote: "Exactly the behavior we train for — declined to make an unauthorized promise, set a callback expectation, AND offered immediate approved value.",
+      correct: "(no correction needed — this IS the correct response)",
+      why: "Protects company from IRDAI exposure, sets honest expectations, and keeps the customer engaged with a real concession.",
+    },
+    risk: { tone: "none", text: "None — clean day." },
+    tomorrow: [
+      "Continue being the standard.",
+      "3 agents are learning from your recordings this week — keep recording quality high.",
+      "Consider one peer-coaching slot for Sneha (closing technique).",
+    ],
+    trend: [{ d: "Mon", v: 77 }, { d: "Tue", v: 78 }, { d: "Wed", v: 78 }, { d: "Thu", v: 78 }, { d: "Fri", v: 78 }],
+  },
+  deepak: {
+    date: "28 April 2026", shift: "Morning (09:00–15:30) — SUSPENDED 15:30", callsToday: 14, callsWeek: 71,
+    cqiTodayScore: 52, cqiTodayPct: 62.7, cqiTodayDelta: -1.0, weeklyAvgPct: 54.3,
+    dims: [
+      { code: "D1", name: "Communication",       max: 10, score: 6,  trend: "flat",            obs: "Polite but hesitant." },
+      { code: "D2", name: "Product Knowledge",   max: 20, score: 12, trend: "flat",            obs: "Attempted product explanation in 2 calls." },
+      { code: "D3", name: "Objection Handling",  max: 12, score: 5,  trend: "down", delta: -1, obs: "Reverted to unauthorized commitments under pressure." },
+      { code: "D4", name: "Customer Handling",   max: 16, score: 11, trend: "flat",            obs: "Friendly tone, but dead air avg 12 seconds." },
+      { code: "D5", name: "Closing",             max: 10, score: 6,  trend: "flat",            obs: "Closes by promising things he cannot deliver." },
+      { code: "D6", name: "Compliance",          max: 15, score: 7,  trend: "down", delta: -2, obs: "FATAL — unauthorized fee waiver + guaranteed-returns mis-selling." },
+    ],
+    worked: ["Attempted product explanation in 2 calls (minimal)."],
+    needs: [
+      "FATAL at 14:32 — unauthorized fee waiver promise.",
+      'Mis-stated ULIP returns as "guaranteed" at 15:10.',
+      "Dead air avg 12 seconds — customers disengaging.",
+    ],
+    spotlight: {
+      time: "14:32",
+      customer: "Sir last year jaisa fee waiver de denge?",
+      agent: "Guaranteed fee waive kar denge — aaj hi renewal kar dijiye.",
+      aiNote: "FATAL — unauthorized promise. Fee waiver requires manager approval. 'Guaranteed' is a binding word the agent has no authority to use. 3rd offense this quarter.",
+      correct: "Sir, waiver ke liye manager approval chahiye — main 2 ghante mein confirm karti hoon. Abhi early renewal pe 7% loyalty discount available hai.",
+      why: "Same outcome (customer engaged), zero IRDAI exposure, and an honest commitment the agent can keep.",
+    },
+    risk: { tone: "fatal", text: "🔴 FATAL breach. 3rd offense. CAP-2 active. Suspended from outbound effective 15:30 today." },
+    tomorrow: [
+      "No calls tomorrow.",
+      "Compliance refresher mandatory — complete before any return to floor.",
+      "Report to QA Head at 10:00 AM.",
+    ],
+    trend: [{ d: "Mon", v: 55 }, { d: "Tue", v: 53 }, { d: "Wed", v: 53 }, { d: "Thu", v: 53 }, { d: "Fri", v: 52 }],
+  },
+  sneha: {
+    date: "28 April 2026", shift: "Morning (09:00–18:00)", callsToday: 20, callsWeek: 96,
+    cqiTodayScore: 68, cqiTodayPct: 81.9, cqiTodayDelta: 1.0, weeklyAvgPct: 80.1,
+    dims: [
+      { code: "D1", name: "Communication",       max: 10, score: 9,  trend: "flat",            obs: "Warm and confident." },
+      { code: "D2", name: "Product Knowledge",   max: 20, score: 16, trend: "up",   delta: 0.5, obs: "Charges explained proactively in 18 of 20 calls." },
+      { code: "D3", name: "Objection Handling",  max: 12, score: 9,  trend: "up",   delta: 0.5, obs: "Improving — but still surrenders 'sochta hoon' easily." },
+      { code: "D4", name: "Customer Handling",   max: 16, score: 14, trend: "flat",            obs: "Empathetic, patient." },
+      { code: "D5", name: "Closing",             max: 10, score: 8,  trend: "up",   delta: 1.0, obs: "Closing improved — used urgency in 3 calls (\"discount sirf 25 April tak\")." },
+      { code: "D6", name: "Compliance",          max: 15, score: 12, trend: "flat",            obs: "Clean." },
+    ],
+    worked: [
+      "Closing improved — used urgency in 3 calls today (\"discount sirf 25 April tak\").",
+      "Product knowledge strong — riders and fund options explained accurately.",
+      "Charges disclosed proactively in 18 of 20 calls.",
+    ],
+    needs: [
+      "Still 4 calls where customer said \"sochta hoon\" and Sneha didn't attempt retention.",
+      "Benefit restatement only in 12 of 20 calls — should be every call.",
+      "Urgency framing inconsistent — works when she uses it, but only 3 of 20.",
+    ],
+    spotlight: {
+      time: "13:45",
+      customer: "Sochta hoon, baad mein batata hoon.",
+      agent: "Bilkul sir, samajh sakti hoon. Bas ek baat — early renewal discount 7% sirf 25 April tak valid hai. Main kal shaam 6 baje call karungi.",
+      aiNote: "First successful retention attempt this week — customer agreed to a specific callback. This is the pattern to repeat.",
+      correct: "(this WAS the correct move — replicate in every \"sochta hoon\" moment)",
+      why: "Time-bound urgency + scheduled callback = customer leaves with a reason to return and a real deadline. No pressure, all facts.",
+    },
+    risk: { tone: "none", text: "None — clean day." },
+    tomorrow: [
+      "Use urgency + benefit restatement in EVERY closing — you did it in 3, do it in all 20.",
+      "On every \"sochta hoon,\" anchor a specific deadline + callback time.",
+      "Goal: 5 points to Top Quartile.",
+    ],
+    trend: [{ d: "Mon", v: 65 }, { d: "Tue", v: 65 }, { d: "Wed", v: 67 }, { d: "Thu", v: 67 }, { d: "Fri", v: 68 }],
+  },
+  manish: {
+    date: "28 April 2026", shift: "Morning (09:00–18:00)", callsToday: 17, callsWeek: 84,
+    cqiTodayScore: 58, cqiTodayPct: 69.9, cqiTodayDelta: 0, weeklyAvgPct: 69.5,
+    dims: [
+      { code: "D1", name: "Communication",       max: 10, score: 7,  trend: "flat",            obs: "Polite greeting and empathetic tone." },
+      { code: "D2", name: "Product Knowledge",   max: 20, score: 10, trend: "flat",            obs: "Could not explain rider benefits in 4 calls." },
+      { code: "D3", name: "Objection Handling",  max: 12, score: 6,  trend: "flat",            obs: "Dead air avg 9 sec after product questions." },
+      { code: "D4", name: "Customer Handling",   max: 16, score: 11, trend: "down", delta: -0.5, obs: "Customer frustration high in 3 calls." },
+      { code: "D5", name: "Closing",             max: 10, score: 6,  trend: "flat",            obs: "Closes without summarising benefits." },
+      { code: "D6", name: "Compliance",          max: 15, score: 14, trend: "flat",            obs: "No breach — disclosure timing OK." },
+    ],
+    worked: ["Polite greeting and empathetic tone (minimal positives today)."],
+    needs: [
+      "Could not explain rider benefits in 4 calls.",
+      "Dead air avg 9 sec after product questions.",
+      'Customer said "aapko apne product ke baare mein pata nahi hai kya?" in 1 call.',
+    ],
+    spotlight: {
+      time: "15:20",
+      customer: "Riders kya hain?",
+      agent: "Riders matlab… extra coverage… ek minute main check karta hoon. (11 sec dead air)",
+      aiNote: "Customer disconnected after 11 seconds of silence. Pattern repeated in 4 calls today. AI coaching has not closed this gap in 5 days.",
+      correct: "Riders optional add-ons hain jo base cover ke saath jude hain. Hamare paas critical illness (34 bimariyan), accidental death (₹50 lakh extra), aur waiver of premium — sab thoda extra premium pe.",
+      why: "A 2-sentence factual answer eliminates dead air and projects mastery. This is exactly what tomorrow's classroom will drill.",
+    },
+    risk: { tone: "minor", text: "No compliance breach — but customer frustration score is high (3 calls flagged today). NPS risk." },
+    tomorrow: [
+      "No calls scheduled — Trainer session at 10:00 AM.",
+      "Review product manual sections 3–5 tonight (riders, funds, charges).",
+      "Bring 3 written questions to the classroom.",
+    ],
+    trend: [{ d: "Mon", v: 59 }, { d: "Tue", v: 59 }, { d: "Wed", v: 58 }, { d: "Thu", v: 58 }, { d: "Fri", v: 58 }],
+  },
+};
+
+function synthEis(roster: RosterAgent): EisData {
+  const pct = roster.cqi;
+  const score = Math.round((pct / 100) * 83);
+  const dims: EisDim[] = [
+    { code: "D1", name: "Communication",      max: 10, score: Math.round(pct / 100 * 10), trend: "flat", obs: "Stable across today's calls." },
+    { code: "D2", name: "Product Knowledge",  max: 20, score: Math.round(pct / 100 * 20), trend: "flat", obs: "On-pattern with weekly average." },
+    { code: "D3", name: "Objection Handling", max: 12, score: Math.round(pct / 100 * 12), trend: "flat", obs: "Mixed — needs more reps." },
+    { code: "D4", name: "Customer Handling",  max: 16, score: Math.round(pct / 100 * 16), trend: "flat", obs: "Customer rapport intact." },
+    { code: "D5", name: "Closing",            max: 10, score: Math.round(pct / 100 * 10), trend: "flat", obs: "Consistent close pattern." },
+    { code: "D6", name: "Compliance",         max: 15, score: Math.round(pct / 100 * 15), trend: "flat", obs: "No breach detected today." },
+  ];
+  return {
+    date: "28 April 2026", shift: "Morning (09:00–18:00)", callsToday: 18, callsWeek: 86,
+    cqiTodayScore: score, cqiTodayPct: pct, cqiTodayDelta: 0, weeklyAvgPct: Math.max(50, pct - 0.5),
+    dims,
+    worked: ["Consistent opening and disclosure.", "No fatal compliance flags today.", "Customer rapport maintained."],
+    needs: ["Tighten closing summary.", "Confirm next-step on every call.", "Reduce dead-air windows."],
+    spotlight: {
+      time: "12:10",
+      customer: "Aapka plan thoda mehnga lag raha hai.",
+      agent: "Sir hamara plan thoda alag hai, main details bhej deti hoon…",
+      aiNote: "Generic deflection. Customer wanted comparison data, not a follow-up promise.",
+      correct: "Sir, ek minute mein bata deti hoon — humara claim settlement 98.7% hai aur FMC time ke saath reduce hota hai. Yeh charges ko long-term mein recover kar deta hai.",
+      why: "Replaces deflection with two concrete numbers that reframe price as value.",
+    },
+    risk: { tone: "none", text: "None — clean day." },
+    tomorrow: ["Use claim settlement + FMC together in every price objection.", "Restate top-3 benefits in last 60 seconds.", "Tighten openings to <12 seconds."],
+    trend: [
+      { d: "Mon", v: Math.max(50, score - 3) },
+      { d: "Tue", v: Math.max(50, score - 2) },
+      { d: "Wed", v: Math.max(50, score - 1) },
+      { d: "Thu", v: Math.max(50, score - 1) },
+      { d: "Fri", v: score },
+    ],
+  };
+}
+
+function EISReport({ roster, keyAgent }: { roster: RosterAgent; keyAgent: Agent | null }) {
+  const eis: EisData = (roster.keyId && AGENT_EIS[roster.keyId]) ? AGENT_EIS[roster.keyId] : synthEis(roster);
+  const deltaTone = eis.cqiTodayDelta > 0 ? "text-acc-green" : eis.cqiTodayDelta < 0 ? "text-acc-mauve" : "text-dim";
+  const deltaArrow = eis.cqiTodayDelta > 0 ? "▲" : eis.cqiTodayDelta < 0 ? "▼" : "—";
+
+  const cellTone = (s: number, m: number) => {
+    const p = s / m;
+    return p >= 0.8 ? "text-acc-green bg-acc-green/5"
+      : p >= 0.6 ? "text-acc-sand bg-acc-sand/5"
+      : "text-acc-mauve bg-acc-mauve/5";
+  };
+  const trendIcon = (t: "up" | "down" | "flat", d?: number) => {
+    if (t === "up") return <span className="text-acc-green">▲ {d ? `+${d}` : ""}</span>;
+    if (t === "down") return <span className="text-acc-mauve">▼ {d ?? ""}</span>;
+    return <span className="text-dim">—</span>;
+  };
+
+  const riskTone =
+    eis.risk.tone === "fatal" ? "border-l-4 border-l-acc-mauve border border-acc-mauve/30 bg-acc-mauve/10"
+    : eis.risk.tone === "minor" ? "border-l-4 border-l-acc-sand border border-acc-sand/30 bg-acc-sand/10"
+    : "border-l-4 border-l-acc-green border border-acc-green/30 bg-acc-green/5";
+
+  return (
+    <div className="space-y-4 text-[14px]">
+      {/* Agent info strip */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <Meta label="Agent" value={roster.name} />
+        <Meta label="Agent ID" value={roster.empId} />
+        <Meta label="Team Leader" value={roster.tl} />
+        <Meta label="Date" value={eis.date} />
+        <Meta label="Shift" value={eis.shift} />
+        <Meta label="Calls Today" value={String(eis.callsToday)} />
+        <Meta label="Calls This Week" value={String(eis.callsWeek)} />
+        <Meta label="Weekly Avg CQI" value={`${eis.weeklyAvgPct.toFixed(1)}%`} />
+      </div>
+
+      {/* Today's CQI summary card */}
+      <div className="rounded-md border border-border bg-surface-2 p-4">
+        <div className="flex items-baseline justify-between mb-3">
+          <div className="text-[11px] uppercase tracking-wider text-dim">Today's CQI Summary</div>
+          <div className="flex items-baseline gap-3">
+            <div className="font-mono text-[26px] leading-none">
+              {eis.cqiTodayScore}<span className="text-dim text-[16px]">/83</span>
+            </div>
+            <div className="text-[14px] text-text-secondary">({eis.cqiTodayPct.toFixed(1)}%)</div>
+            <div className={`text-[14px] font-medium ${deltaTone}`}>
+              {deltaArrow} {eis.cqiTodayDelta > 0 ? `+${eis.cqiTodayDelta}` : eis.cqiTodayDelta} from yesterday
+            </div>
+          </div>
+        </div>
+        <div className="rounded-md border border-border overflow-hidden">
+          <div className="grid grid-cols-[60px_1.6fr_60px_80px_90px_1fr] bg-surface text-[11.5px] uppercase tracking-wider text-dim">
+            <div className="px-2.5 py-2">Dim</div>
+            <div className="px-2.5 py-2">Dimension</div>
+            <div className="px-2.5 py-2 text-right">Max</div>
+            <div className="px-2.5 py-2 text-right">Today</div>
+            <div className="px-2.5 py-2">Trend</div>
+            <div className="px-2.5 py-2">Observation</div>
+          </div>
+          {eis.dims.map((d, i) => (
+            <div key={i} className="grid grid-cols-[60px_1.6fr_60px_80px_90px_1fr] border-t border-border text-[13px]">
+              <div className="px-2.5 py-2 text-text-secondary">{d.code}</div>
+              <div className="px-2.5 py-2">{d.name}</div>
+              <div className="px-2.5 py-2 text-right text-dim">{d.max}</div>
+              <div className={`px-2.5 py-2 text-right font-mono ${cellTone(d.score, d.max)}`}>{d.score}/{d.max}</div>
+              <div className="px-2.5 py-2">{trendIcon(d.trend, d.delta)}</div>
+              <div className="px-2.5 py-2 text-text-secondary">{d.obs}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Worked / Needs */}
+      <div className="grid md:grid-cols-2 gap-3">
+        <div className="rounded-md border-l-4 border-l-acc-green border border-acc-green/30 bg-acc-green/5 p-3">
+          <div className="text-[11px] uppercase tracking-wider text-acc-green mb-2">What Worked Well</div>
+          <ul className="space-y-1.5 text-[13.5px]">
+            {eis.worked.map((s, i) => <li key={i} className="flex gap-2"><span className="text-acc-green mt-0.5">✓</span><span>{s}</span></li>)}
+          </ul>
+        </div>
+        <div className="rounded-md border-l-4 border-l-acc-sand border border-acc-sand/30 bg-acc-sand/5 p-3">
+          <div className="text-[11px] uppercase tracking-wider text-acc-sand mb-2">What Needs Improvement</div>
+          <ul className="space-y-1.5 text-[13.5px]">
+            {eis.needs.map((s, i) => <li key={i} className="flex gap-2"><span className="text-acc-sand mt-0.5">●</span><span>{s}</span></li>)}
+          </ul>
+        </div>
+      </div>
+
+      {/* Spotlight */}
+      <div className="rounded-md border-l-4 border-l-acc-blue border border-acc-blue/30 bg-acc-blue/5 p-4 space-y-2.5">
+        <div className="flex items-center gap-2">
+          <div className="text-[11px] uppercase tracking-wider text-acc-blue">Call Spotlight</div>
+          <div className="text-[12px] text-dim">· {eis.spotlight.time}</div>
+        </div>
+        <div>
+          <div className="text-[10.5px] uppercase tracking-wider text-acc-sand mb-0.5">Customer</div>
+          <div className="text-[14px] italic text-acc-sand/90">"{eis.spotlight.customer}"</div>
+        </div>
+        <div>
+          <div className="text-[10.5px] uppercase tracking-wider text-acc-mauve mb-0.5">Agent said</div>
+          <div className="text-[14px] italic text-acc-mauve/90">"{eis.spotlight.agent}"</div>
+        </div>
+        <div className="rounded-md border border-border bg-surface-2 p-2.5">
+          <div className="text-[10.5px] uppercase tracking-wider text-dim mb-0.5">AI Note</div>
+          <div className="text-[13.5px] text-text-secondary">{eis.spotlight.aiNote}</div>
+        </div>
+        <div className="rounded-md border border-acc-green/30 bg-acc-green/5 p-2.5">
+          <div className="text-[10.5px] uppercase tracking-wider text-acc-green mb-0.5">Correct Response</div>
+          <div className="text-[14px] italic text-acc-green/90">"{eis.spotlight.correct}"</div>
+        </div>
+        <div>
+          <div className="text-[10.5px] uppercase tracking-wider text-dim mb-0.5">Why this works</div>
+          <div className="text-[13.5px] text-text-secondary">{eis.spotlight.why}</div>
+        </div>
+      </div>
+
+      {/* Risk */}
+      <div className={`rounded-md p-3 ${riskTone}`}>
+        <div className="text-[11px] uppercase tracking-wider mb-1 text-foreground/80">Risk Flags</div>
+        <div className="text-[13.5px]">{eis.risk.text}</div>
+      </div>
+
+      {/* Tomorrow */}
+      <div className="rounded-md border-l-4 border-l-acc-green border border-acc-green/30 bg-acc-green/5 p-3">
+        <div className="text-[11px] uppercase tracking-wider text-acc-green mb-2">Tomorrow's Focus</div>
+        <ol className="space-y-1.5 text-[13.5px] list-decimal pl-5">
+          {eis.tomorrow.map((s, i) => <li key={i}>{s}</li>)}
+        </ol>
+      </div>
+
+      {/* Weekly trend */}
+      <div className="rounded-md border border-border bg-surface-2 p-3">
+        <div className="text-[11px] uppercase tracking-wider text-dim mb-2">Weekly Trend</div>
+        <div className="grid grid-cols-5 gap-2">
+          {eis.trend.map((t, i) => {
+            const prev = i > 0 ? eis.trend[i - 1].v : t.v;
+            const arrow = t.v > prev ? "▲" : t.v < prev ? "▼" : "—";
+            const tone = t.v > prev ? "text-acc-green" : t.v < prev ? "text-acc-mauve" : "text-dim";
+            return (
+              <div key={i} className="rounded-md border border-border bg-surface p-2.5 text-center">
+                <div className="text-[10.5px] uppercase tracking-wider text-dim">{t.d}</div>
+                <div className="font-mono text-[18px] mt-0.5">{t.v}</div>
+                <div className={`text-[12px] ${tone}`}>{arrow}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
