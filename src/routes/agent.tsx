@@ -1251,6 +1251,17 @@ const AGENT_PLANS: Record<string, AgentPlan> = {
           "Front-load it: 'Sir, premium discuss karne se pehle 30 second mein structure bata deti hoon — life cover, charges, aur free-look. Phir hum aapke liye plan customize karenge.'",
       },
     ],
+    altCheat: {
+      title: "T&C Compliance Sequence — First 30 Seconds",
+      intro: "Disclosures must complete in this order BEFORE any premium discussion.",
+      rows: [
+        { k: "0–10 sec", v: "Call recording disclosure — 'Yeh call quality aur training purpose ke liye record ho rahi hai.'", tone: "green" },
+        { k: "10–20 sec", v: "T&C framework — life cover scope, charges structure, free-look period.", tone: "green" },
+        { k: "20–30 sec", v: "Confirm policy holder / decision maker identity.", tone: "green" },
+        { k: "After 30 sec", v: "ONLY now begin premium and product discussion.", tone: "amber" },
+        { k: "Never", v: "Discuss premium before T&C — IRDAI compliance breach.", tone: "mauve" },
+      ],
+    },
     quiz: [
       { q: "In the first 30 seconds of a call, what 3 things must you cover?", a: "(1) Call recording disclosure. (2) T&C framework — cover, charges, free-look. (3) Confirm customer is the policy holder / decision maker." },
       { q: "Why is it important to mention T&C BEFORE premium discussion?", a: "It is an IRDAI compliance requirement AND it pre-empts the 'aapne charges nahi bataye' objection. Trust is built before price is anchored." },
