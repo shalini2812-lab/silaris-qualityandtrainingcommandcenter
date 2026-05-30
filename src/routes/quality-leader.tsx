@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   BarChart, Bar, ComposedChart, Line, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts";
+import { ChevronDown } from "lucide-react";
 import { Shell, Card, SectionTitle, Kpi, Badge } from "@/components/silaris/Shell";
 import { TOP_DEFECTS, HEATMAP_TEAMS } from "@/lib/silaris-data";
 
