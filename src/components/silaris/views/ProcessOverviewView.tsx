@@ -86,6 +86,9 @@ export function ProcessOverviewView({ kicker = "Home" }: { kicker?: string }) {
             </div>
           ))}
         </div>
+        <div className="mt-3 rounded-md border border-acc-green/30 bg-acc-green/5 px-3 py-2 text-[12px] text-foreground/85">
+          <span className="text-acc-green font-semibold">Training:</span> 85% AI-led · 15% Human-led · <span className="font-mono">142</span> trainer hours saved
+        </div>
       </section>
 
       {/* Quality Metrics + Conversion + Trend */}
