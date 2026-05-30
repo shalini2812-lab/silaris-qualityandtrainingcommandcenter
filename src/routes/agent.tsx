@@ -4,7 +4,7 @@ import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
   CartesianGrid, Cell,
 } from "recharts";
-import { X, FileText, GraduationCap, TrendingUp, Search, ChevronDown } from "lucide-react";
+import { X, FileText, GraduationCap, TrendingUp, Search, ChevronDown, ClipboardList } from "lucide-react";
 import { Shell, Card, SectionTitle, Badge, CatBadge } from "@/components/silaris/Shell";
 import { useExecutionPanel } from "@/components/silaris/ExecutionPanel";
 import type { CopilotProps } from "@/components/silaris/Copilot";
@@ -148,7 +148,7 @@ function AgentView() {
   const [filter, setFilter] = useState<FilterKey>("all");
   const [showAll, setShowAll] = useState(false);
   const [selectedRank, setSelectedRank] = useState<number | null>(null);
-  const [modal, setModal] = useState<null | "feedback" | "training">(null);
+  const [modal, setModal] = useState<null | "feedback" | "training" | "eis">(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -259,19 +259,32 @@ function AgentView() {
           onClose={() => setSelectedRank(null)}
           onOpenFeedback={() => setModal("feedback")}
           onOpenTraining={() => setModal("training")}
+          onOpenEis={() => setModal("eis")}
         />
       )}
 
       {modal && selected && (
         <Modal
           onClose={() => setModal(null)}
-          title={modal === "feedback" ? "CALL QUALITY MONITORING SHEET" : "Personalized Training Plan"}
-          subtitle={modal === "feedback" ? "Outbound Insurance Sales · BPO Operations · AI-Enhanced Review" : undefined}
-          wide={modal === "feedback" || (modal === "training" && !!keyAgent && AGENT_PLANS[keyAgent.id]?.fba !== undefined)}
+          title={
+            modal === "feedback" ? "CALL QUALITY MONITORING SHEET"
+            : modal === "training" ? "Personalized Training Plan"
+            : "Everyday Improvement Sheet (EIS)"
+          }
+          subtitle={
+            modal === "feedback" ? "Outbound Insurance Sales · BPO Operations · AI-Enhanced Review"
+            : modal === "eis" ? "Daily Coaching Report · 28 April 2026"
+            : undefined
+          }
+          wide={
+            modal === "feedback"
+            || modal === "eis"
+            || (modal === "training" && !!keyAgent && AGENT_PLANS[keyAgent.id]?.fba !== undefined)
+          }
         >
-          {modal === "feedback"
-            ? <FeedbackSheet roster={selected} keyAgent={keyAgent} />
-            : (keyAgent ? <TrainingPlan a={keyAgent} /> : <GenericTraining r={selected} />)}
+          {modal === "feedback" && <FeedbackSheet roster={selected} keyAgent={keyAgent} />}
+          {modal === "training" && (keyAgent ? <TrainingPlan a={keyAgent} /> : <GenericTraining r={selected} />)}
+          {modal === "eis" && <EISReport roster={selected} keyAgent={keyAgent} />}
         </Modal>
       )}
     </Shell>
