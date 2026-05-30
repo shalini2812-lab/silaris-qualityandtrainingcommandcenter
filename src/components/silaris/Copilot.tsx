@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Sparkles, Check, AlertTriangle, MessageSquare } from "lucide-react";
 import { useExecutionPanel } from "./ExecutionPanel";
 
@@ -6,9 +7,11 @@ export interface CopilotProps {
   attention: string[];
   suggestions: { title: string; detail: string; action?: "Approve" | "Review" }[];
   summary?: string;
+  /** Optional content rendered at the top of the sidebar body (quick reference card etc). */
+  extra?: ReactNode;
 }
 
-export function Copilot({ working, attention, suggestions, summary }: CopilotProps) {
+export function Copilot({ working, attention, suggestions, summary, extra }: CopilotProps) {
   const { openFromSuggestion } = useExecutionPanel();
   return (
     <aside className="w-[310px] shrink-0 border-l border-border bg-surface-2 flex flex-col">
@@ -21,6 +24,7 @@ export function Copilot({ working, attention, suggestions, summary }: CopilotPro
       </div>
 
       <div className="overflow-y-auto p-4 space-y-4 flex-1">
+        {extra}
         {summary && (
           <div className="text-[12.5px] text-foreground/85 leading-relaxed bg-surface border border-border rounded-md p-3">
             {summary}
